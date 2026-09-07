@@ -1,20 +1,28 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import { PriceTrend } from "@/components/PriceTrend";
 import { StationCard } from "@/components/StationCard";
 import {
-  BRANDS,
-  CITIES,
+  CITY_CENTERS,
   FUEL_LABELS,
-  STATIONS,
   formatPrice,
+  haversineKm,
+  nearestCity,
   type FuelType,
+  type Station,
 } from "@/data/stations";
+import { getFuelData } from "@/lib/fuel.functions";
 
 const TITLE = "Pigiausi Degalai – degalų kainos Lietuvoje";
 const DESC =
   "Rask pigiausią kurą arti savęs: degalinių kainos, atstumai, kainų tendencija ir kelionės kuro skaičiuoklė.";
+
+const fuelQuery = queryOptions({
+  queryKey: ["fuel-data"],
+  queryFn: () => getFuelData(),
+});
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -23,13 +31,28 @@ export const Route = createFileRoute("/")({
       { name: "description", content: DESC },
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESC },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: TITLE },
+      { name: "twitter:description", content: DESC },
     ],
   }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(fuelQuery),
+  errorComponent: () => (
+    <div className="grid min-h-screen place-items-center bg-frost p-6 text-center text-ice">
+      <p className="text-sm text-ice/70">
+        Nepavyko įkelti kainų. Pabandyk atnaujinti puslapį po kelių sekundžių.
+      </p>
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="grid min-h-screen place-items-center bg-frost text-ice">Nerasta</div>
+  ),
   component: Index,
 });
 
 const FUELS: FuelType[] = ["diesel", "p95", "p98", "lpg"];
-const RADIUSES = [5, 10, 20];
+const RADIUSES = [5, 10, 20, 50];
 const TABS = [
   { id: "nearby", label: "Artimiausi", icon: "📍" },
   { id: "trend", label: "Tendencija", icon: "📈" },
@@ -40,7 +63,11 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 function Index() {
-  const [city, setCity] = useState("Vilnius");
+  const { data } = useSuspenseQuery(fuelQuery);
+  const cities = data.cities.length > 0 ? data.cities : Object.keys(CITY_CENTERS);
+
+  const [city, setCity] = useState(() => (cities.includes("Vilnius") ? "Vilnius" : cities[0]!));
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [locationState, setLocationState] = useState<"tikrinama" | "nustatyta" | "rankinė">(
     "tikrinama",
   );
@@ -54,14 +81,20 @@ function Index() {
   const [tripKm, setTripKm] = useState("300");
 
   useEffect(() => {
+    const stored = localStorage.getItem("degalai-favorites");
+    if (stored) setFavorites(JSON.parse(stored) as string[]);
+  }, []);
+
+  useEffect(() => {
     if (!navigator.geolocation) {
       setLocationState("rankinė");
       setPickingCity(true);
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      () => {
-        setCity("Vilnius");
+      (pos) => {
+        setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        setCity(nearestCity(pos.coords.latitude, pos.coords.longitude));
         setLocationState("nustatyta");
       },
       () => {
@@ -72,27 +105,48 @@ function Index() {
     );
   }, []);
 
-  const cityStations = useMemo(() => STATIONS.filter((s) => s.city === city), [city]);
+  const origin = coords ?? CITY_CENTERS[city] ?? { lat: 54.6872, lon: 25.2797 };
 
-  const list = useMemo(() => {
-    return cityStations
-      .filter((s) => s.distanceKm <= radius)
-      .filter((s) => (brand ? s.brand === brand : true))
-      .filter((s) => s.prices[fuel] !== undefined)
-      .sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0))
-      .slice(0, 5);
-  }, [cityStations, radius, brand, fuel]);
+  const withDistance = useMemo<Station[]>(
+    () =>
+      data.stations.map((s) => ({
+        ...s,
+        distanceKm:
+          s.lat !== null && s.lon !== null
+            ? haversineKm(origin.lat, origin.lon, s.lat, s.lon)
+            : Infinity,
+      })),
+    [data.stations, origin.lat, origin.lon],
+  );
 
-  const favoriteStations = STATIONS.filter((s) => favorites.includes(s.id));
+  const cityStations = useMemo(
+    () => withDistance.filter((s) => s.city === city),
+    [withDistance, city],
+  );
+
+  const list = useMemo(
+    () =>
+      cityStations
+        .filter((s) => s.distanceKm <= radius)
+        .filter((s) => (brand ? s.brand === brand : true))
+        .filter((s) => s.prices[fuel] !== undefined)
+        .sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0))
+        .slice(0, 5),
+    [cityStations, radius, brand, fuel],
+  );
+
+  const favoriteStations = withDistance.filter((s) => favorites.includes(s.id));
   const cheapest = list[0];
   const priciest = list[list.length - 1];
   const monthlySaving =
-    cheapest && priciest
-      ? ((priciest.prices[fuel] ?? 0) - (cheapest.prices[fuel] ?? 0)) * 45 * 4
-      : 0;
+    cheapest && priciest ? ((priciest.prices[fuel] ?? 0) - (cheapest.prices[fuel] ?? 0)) * 45 * 4 : 0;
 
   const toggleFavorite = (id: string) =>
-    setFavorites((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    setFavorites((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      localStorage.setItem("degalai-favorites", JSON.stringify(next));
+      return next;
+    });
 
   const litersPer100 = Number(consumption.replace(",", ".")) || 0;
   const km = Number(tripKm.replace(",", ".")) || 0;
@@ -102,6 +156,14 @@ function Index() {
   const tripCostWorst = priciest
     ? ((km / 100) * litersPer100 * (priciest.prices[fuel] ?? 0)).toFixed(2).replace(".", ",")
     : "0,00";
+
+  const trendPoints = data.history[city]?.[fuel] ?? [];
+  const dateLabel = data.latestDate
+    ? new Date(data.latestDate).toLocaleDateString("lt-LT", {
+        day: "numeric",
+        month: "long",
+      })
+    : "—";
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-frost font-sans text-ice antialiased">
@@ -119,7 +181,7 @@ function Index() {
               <h1 className="text-[15px] font-semibold leading-tight tracking-tight">
                 Pigiausi Degalai
               </h1>
-              <p className="text-[11px] text-ice/50">Degalų kainų radaras</p>
+              <p className="text-[11px] text-ice/50">Kainos {dateLabel}</p>
             </div>
           </div>
           <button
@@ -156,11 +218,12 @@ function Index() {
 
           {pickingCity && (
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {CITIES.map((c) => (
+              {cities.map((c) => (
                 <button
                   key={c}
                   onClick={() => {
                     setCity(c);
+                    setCoords(null);
                     setLocationState("rankinė");
                     setPickingCity(false);
                   }}
@@ -224,7 +287,7 @@ function Index() {
               >
                 Visi
               </button>
-              {BRANDS.map((b) => (
+              {data.brands.map((b) => (
                 <button
                   key={b}
                   onClick={() => setBrand(b)}
@@ -289,7 +352,7 @@ function Index() {
           </>
         )}
 
-        {tab === "trend" && <PriceTrend fuel={fuel} city={city} />}
+        {tab === "trend" && <PriceTrend fuel={fuel} city={city} points={trendPoints} />}
 
         {tab === "calc" && (
           <section className="mt-5 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
@@ -316,9 +379,7 @@ function Index() {
             </div>
             <div className="mt-4 flex items-end justify-between">
               <div>
-                <p className="text-[11px] text-ice/60">
-                  Pigiausioje ({cheapest?.brand ?? "—"})
-                </p>
+                <p className="text-[11px] text-ice/60">Pigiausioje ({cheapest?.brand ?? "—"})</p>
                 <p className="text-2xl font-bold tracking-tight text-mint">{tripCost} €</p>
               </div>
               <div className="text-right">
@@ -355,7 +416,10 @@ function Index() {
         )}
 
         <p className="mt-6 text-center text-[11px] text-ice/40">
-          Testiniai duomenys. Realios kainos – Lietuvos energetikos agentūra.
+          Kainų šaltinis – Lietuvos energetikos agentūra.{" "}
+          <Link to="/admin" className="text-ice/60 underline">
+            Kainų pildymas
+          </Link>
         </p>
       </div>
 
