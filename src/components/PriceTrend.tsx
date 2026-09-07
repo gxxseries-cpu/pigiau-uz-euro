@@ -10,8 +10,10 @@ export function PriceTrend({ fuel, city }: { fuel: FuelType; city: string }) {
     const y = 56 - ((v - min) / span) * 46;
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
-  const change = data[data.length - 1] - data[0];
-  const pct = ((change / data[0]) * 100).toFixed(1).replace(".", ",");
+  const first = data[0] ?? 0;
+  const last = data[data.length - 1] ?? 0;
+  const change = last - first;
+  const pct = (first ? (change / first) * 100 : 0).toFixed(1).replace(".", ",");
 
   return (
     <section className="relative mt-5 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
