@@ -19,6 +19,11 @@
  */
 
 @theme inline {
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --color-frost: var(--frost);
+  --color-frost-2: var(--frost-2);
+  --color-ice: var(--ice);
+  --color-mint: var(--mint);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
