@@ -24,7 +24,7 @@ export function PriceTrend({ fuel, city }: { fuel: FuelType; city: string }) {
           {change >= 0 ? "↑" : "↓"} {pct.replace("-", "")} %
         </span>
       </div>
-      <p className="mt-1 text-2xl font-bold tracking-tight">{formatPrice(data[data.length - 1])}</p>
+      <p className="mt-1 text-2xl font-bold tracking-tight">{formatPrice(last)}</p>
       <svg className="mt-3 h-16 w-full" viewBox="0 0 320 64" fill="none" preserveAspectRatio="none">
         <defs>
           <linearGradient id="trendArea" x1="0" y1="0" x2="0" y2="1">
