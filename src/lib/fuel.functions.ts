@@ -2,7 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
+import { brandLabel } from "@/data/stations";
 import type { FuelType, Station } from "@/data/stations";
+
 
 export type TrendPoint = { date: string; avg: number };
 export type FuelData = {
@@ -108,10 +110,11 @@ export const getFuelData = createServerFn({ method: "GET" }).handler(
       }
     }
 
-    const stations: Station[] = (stationRows ?? [])
-      .map((s) => ({ s, label: brandLabel(s.brand) }))
-      .filter((x): x is { s: (typeof stationRows)[number]; label: string } => x.label !== null)
-      .map(({ s, label }) => ({
+    const stations: Station[] = [];
+    for (const s of stationRows ?? []) {
+      const label = brandLabel(s.brand);
+      if (!label) continue;
+      stations.push({
         id: s.id,
         brand: label,
         area: s.area ?? "",
@@ -122,7 +125,9 @@ export const getFuelData = createServerFn({ method: "GET" }).handler(
         distanceKm: 0,
         updatedAt: updated.get(s.id) ?? "—",
         prices: prices.get(s.id) ?? {},
-      }));
+      });
+    }
+
 
     return {
       stations,
