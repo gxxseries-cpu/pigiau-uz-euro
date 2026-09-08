@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/BrandLogo";
 import {
   FUEL_LABELS,
   FUEL_SHORT,
@@ -13,11 +14,19 @@ type Props = {
   cheapest?: boolean;
   favorite: boolean;
   onToggleFavorite: () => void;
+  onOpen?: () => void;
 };
 
 const SECONDARY: FuelType[] = ["p95", "p98", "diesel", "lpg"];
 
-export function StationCard({ station, fuel, cheapest, favorite, onToggleFavorite }: Props) {
+export function StationCard({
+  station,
+  fuel,
+  cheapest,
+  favorite,
+  onToggleFavorite,
+  onOpen,
+}: Props) {
   const secondary = SECONDARY.filter((f) => f !== fuel).slice(0, 3);
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
     `${station.brand} ${station.address}`,
