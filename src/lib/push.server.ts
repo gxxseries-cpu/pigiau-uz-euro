@@ -57,7 +57,7 @@ async function buildMessage(sub: Subscriber) {
 
   // Pigiausia dyzelino degalinė mieste – artimiausios pakaitalas, kol
   // neturime naudotojo koordinačių serverio pusėje.
-  let best: { name: string; diesel?: number; p95?: number } | null = null;
+  let best: { name: string; diesel?: number | undefined; p95?: number | undefined } | null = null;
   for (const s of stations ?? []) {
     const b = byStation.get(s.id);
     if (!b || b.diesel === undefined) continue;
