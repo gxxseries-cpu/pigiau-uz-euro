@@ -15,9 +15,22 @@ export const Route = createFileRoute("/api/public/cron/ena-prices")({
         const denied = await authorize(request);
         if (denied) return denied;
 
-        const { runDailyImport } = await import("@/lib/ena-import.server");
-        const result = await runDailyImport();
-        return Response.json(result, { status: result.status === "sėkmė" ? 200 : 500 });
+        try {
+          const { runDailyImport } = await import("@/lib/ena-import.server");
+          // runDailyImport pati apdoroja klaidas ir įrašo būseną – atsakymas visada 200.
+          return Response.json(await runDailyImport());
+        } catch (err) {
+          console.error("ENA importo klaida:", err);
+          return Response.json(
+            {
+              status: "klaida",
+              message: err instanceof Error ? err.message : "Nežinoma klaida.",
+              stations: 0,
+              prices: 0,
+            },
+            { status: 500 },
+          );
+        }
       },
     },
   },
