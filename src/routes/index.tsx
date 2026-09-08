@@ -88,6 +88,7 @@ function Index() {
   const cities = data.cities.length > 0 ? data.cities : Object.keys(CITY_CENTERS);
 
   const [city, setCity] = useState(() => (cities.includes("Vilnius") ? "Vilnius" : cities[0]!));
+  const [cityKind, setCityKind] = useState<"city" | "area">("city");
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [locationState, setLocationState] = useState<"tikrinama" | "nustatyta" | "rankinė">(
     "tikrinama",
@@ -105,20 +106,42 @@ function Index() {
 
   const quickCities = MAIN_CITIES.filter((c) => cities.includes(c));
 
+  /** Ieškoma pagal tikrus duomenyse esančius miestus/miestelius ir savivaldybes/rajonus. */
+  const places = useMemo(() => {
+    const counts = new Map<string, { name: string; kind: "city" | "area"; count: number }>();
+    for (const s of data.stations) {
+      for (const [name, kind] of [
+        [s.city, "city"],
+        [s.area, "area"],
+      ] as Array<[string, "city" | "area"]>) {
+        if (!name) continue;
+        const key = `${kind}:${norm(name)}`;
+        const entry = counts.get(key) ?? { name, kind, count: 0 };
+        entry.count += 1;
+        counts.set(key, entry);
+      }
+    }
+    return [...counts.values()];
+  }, [data.stations]);
+
   const cityCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const s of data.stations) counts[s.city] = (counts[s.city] ?? 0) + 1;
     return counts;
   }, [data.stations]);
 
-  const matchingCities = useMemo(() => {
-    const q = cityQuery.trim().toLowerCase();
+  const matchingPlaces = useMemo(() => {
+    const q = norm(cityQuery);
     if (!q) return [];
-    return cities.filter((c) => c.toLowerCase().includes(q)).slice(0, 30);
-  }, [cities, cityQuery]);
+    return places
+      .filter((p) => norm(p.name).includes(q))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 30);
+  }, [places, cityQuery]);
 
-  const selectCity = (c: string) => {
+  const selectCity = (c: string, kind: "city" | "area" = "city") => {
     setCity(c);
+    setCityKind(kind);
     setCoords(null);
     setLocationState("rankinė");
     setPickingCity(false);
