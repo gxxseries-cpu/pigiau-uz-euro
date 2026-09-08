@@ -7,6 +7,15 @@ import type { FuelType, Station } from "@/data/stations";
 
 
 export type TrendPoint = { date: string; avg: number };
+export type MarketSignal = {
+  date: string;
+  direction: "up" | "down" | "flat";
+  brentChangePct: number;
+  fxChangePct: number;
+  brentUsd: number;
+  brentEur: number;
+  eurUsd: number;
+};
 export type FuelData = {
   stations: Station[];
   brands: string[];
