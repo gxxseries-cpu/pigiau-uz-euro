@@ -96,7 +96,8 @@ function parseCsv(text: string): { rows: ParsedRow[]; errors: string[] } {
       if (key === "brand" || key === "address" || key === "city" || key === "area") {
         row[key] = value;
       } else {
-        row[key] = num(value);
+        const parsedNumber = num(value);
+        if (parsedNumber !== undefined) row[key] = parsedNumber;
       }
     });
     if (!row.brand || !row.address || !row.city) {
