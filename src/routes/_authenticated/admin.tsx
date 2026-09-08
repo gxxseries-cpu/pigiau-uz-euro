@@ -274,14 +274,14 @@ function AdminPage() {
             <section className="mt-5 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
               <p className="text-sm font-semibold">Automatinis atnaujinimas</p>
               <p className="mt-1 text-[11px] text-ice/50">
-                Kasdien 10:30 kainos pačios nusiskaito iš nurodytos Excel arba CSV failo nuorodos –
-                rankinio įkėlimo nebereikia.
+                Kasdien 10:30 kainos pačios nusiskaito iš ENA ataskaitos – rankinio įkėlimo
+                nebereikia. Atsarginiu atveju galima nurodyti Excel arba CSV failo nuorodą.
               </p>
 
               <p className="mt-3 text-[11px] text-ice/60">
-                Dabartinė nuoroda:{" "}
+                Atsarginė failo nuoroda:{" "}
                 <span className="break-all text-ice/80">
-                  {sourceUrl ? sourceUrl : "dar nenurodyta"}
+                  {sourceUrl ? sourceUrl : "nereikia – naudojama ENA ataskaita"}
                 </span>
               </p>
 
@@ -302,7 +302,7 @@ function AdminPage() {
               </button>
               <button
                 onClick={doRunNow}
-                disabled={busy || !sourceUrl}
+                disabled={busy}
                 className="mt-2 w-full rounded-xl bg-mint px-4 py-2.5 text-sm font-semibold text-frost disabled:opacity-60"
               >
                 {busy ? "Atnaujinama…" : "Atnaujinti dabar"}
