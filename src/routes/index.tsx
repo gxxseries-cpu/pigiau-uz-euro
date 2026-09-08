@@ -150,16 +150,20 @@ function Index() {
     [withDistance, city],
   );
 
+  /** Kai vietovė pasirinkta rankiniu būdu, spindulys netaikomas – rodoma visa vietovė. */
+  const manualCity = coords === null;
+
   const list = useMemo(
     () =>
       cityStations
-        .filter((s) => s.distanceKm <= radius)
+        .filter((s) => (manualCity ? true : s.distanceKm <= radius))
         .filter((s) => (brand ? s.brand === brand : true))
         .filter((s) => s.prices[fuel] !== undefined)
         .sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0))
-        .slice(0, 5),
-    [cityStations, radius, brand, fuel],
+        .slice(0, manualCity ? 10 : 5),
+    [cityStations, radius, brand, fuel, manualCity],
   );
+
 
   const favoriteStations = withDistance.filter((s) => favorites.includes(s.id));
   const cheapest = list[0];
