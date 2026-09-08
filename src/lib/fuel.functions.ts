@@ -68,23 +68,51 @@ function sinceDate(days: number) {
   return since.toISOString().slice(0, 10);
 }
 
+/** Kainų nuskaitymas puslapiais – vienoje užklausoje grąžinama ne daugiau kaip 1000 eilučių. */
+async function fetchAllPrices(
+  supabase: ReturnType<typeof publicClient>,
+  sinceStr: string,
+) {
+  const PAGE = 1000;
+  const all: Array<{
+    station_id: string;
+    fuel_type: string;
+    price: number;
+    price_date: string;
+    updated_at: string;
+  }> = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from("station_prices")
+      .select("station_id, fuel_type, price, price_date, updated_at")
+      .gte("price_date", sinceStr)
+      .order("price_date", { ascending: true })
+      .order("station_id", { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    all.push(...((data ?? []) as typeof all));
+    if ((data ?? []).length < PAGE) break;
+  }
+  return all;
+}
+
 export const getFuelData = createServerFn({ method: "GET" }).handler(
   async (): Promise<FuelData> => {
     const supabase = publicClient();
     const sinceStr = sinceDate(HISTORY_DAYS);
 
-    const [{ data: stationRows, error: sErr }, { data: priceRows, error: pErr }] =
-      await Promise.all([
+    let stationRows: Awaited<ReturnType<typeof supabase.from>> extends never ? never : any[] = [];
+    let priceRows: Awaited<ReturnType<typeof fetchAllPrices>> = [];
+    try {
+      const [stations, prices] = await Promise.all([
         supabase.from("stations").select("id, brand, area, address, city, lat, lon"),
-        supabase
-          .from("station_prices")
-          .select("station_id, fuel_type, price, price_date, updated_at")
-          .gte("price_date", sinceStr)
-          .order("price_date", { ascending: true }),
+        fetchAllPrices(supabase, sinceStr),
       ]);
-
-    if (sErr || pErr) {
-      console.error("Nepavyko gauti duomenų:", sErr ?? pErr);
+      if (stations.error) throw stations.error;
+      stationRows = stations.data ?? [];
+      priceRows = prices;
+    } catch (err) {
+      console.error("Nepavyko gauti duomenų:", err);
       return { stations: [], brands: [], majorBrands: [], cities: [], latestDate: null, history: {} };
     }
 
