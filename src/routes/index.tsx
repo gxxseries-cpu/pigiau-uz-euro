@@ -82,6 +82,7 @@ function Index() {
   const [brand, setBrand] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [tab, setTab] = useState<TabId>("nearby");
+  const [openStationId, setOpenStationId] = useState<string | null>(null);
   const [consumption, setConsumption] = useState("6,5");
   const [tripKm, setTripKm] = useState("300");
 
