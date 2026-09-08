@@ -3,7 +3,9 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import { PriceTrend } from "@/components/PriceTrend";
+import { PushOptIn } from "@/components/PushOptIn";
 import { StationCard } from "@/components/StationCard";
+import { StationDetail } from "@/components/StationDetail";
 import {
   CITY_CENTERS,
   MAIN_CITIES,
@@ -414,7 +416,7 @@ function Index() {
           </>
         )}
 
-        {tab === "trend" && <PriceTrend fuel={fuel} city={city} points={trendPoints} />}
+        {tab === "trend" && <PriceTrend fuel={fuel} title={city} points={trendPoints} />}
 
         {tab === "calc" && (
           <section className="mt-5 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
