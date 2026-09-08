@@ -3,7 +3,9 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import { PriceTrend } from "@/components/PriceTrend";
+import { PushOptIn } from "@/components/PushOptIn";
 import { StationCard } from "@/components/StationCard";
+import { StationDetail } from "@/components/StationDetail";
 import {
   CITY_CENTERS,
   MAIN_CITIES,
@@ -80,6 +82,7 @@ function Index() {
   const [brand, setBrand] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [tab, setTab] = useState<TabId>("nearby");
+  const [openStationId, setOpenStationId] = useState<string | null>(null);
   const [consumption, setConsumption] = useState("6,5");
   const [tripKm, setTripKm] = useState("300");
 
@@ -166,6 +169,7 @@ function Index() {
 
 
   const favoriteStations = withDistance.filter((s) => favorites.includes(s.id));
+  const openStation = withDistance.find((s) => s.id === openStationId) ?? null;
   const cheapest = list[0];
   const priciest = list[list.length - 1];
   const monthlySaving =
@@ -363,6 +367,9 @@ function Index() {
           </div>
         </section>
 
+        <PushOptIn city={city} fuel={fuel} />
+
+
         {tab === "nearby" && (
           <>
             <div className="mt-5 flex items-end justify-between">
@@ -395,6 +402,7 @@ function Index() {
                   cheapest={i === 0}
                   favorite={favorites.includes(s.id)}
                   onToggleFavorite={() => toggleFavorite(s.id)}
+                  onOpen={() => setOpenStationId(s.id)}
                 />
               ))}
             </div>
@@ -414,7 +422,7 @@ function Index() {
           </>
         )}
 
-        {tab === "trend" && <PriceTrend fuel={fuel} city={city} points={trendPoints} />}
+        {tab === "trend" && <PriceTrend fuel={fuel} title={city} points={trendPoints} />}
 
         {tab === "calc" && (
           <section className="mt-5 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
@@ -471,6 +479,7 @@ function Index() {
                   fuel={fuel}
                   favorite
                   onToggleFavorite={() => toggleFavorite(s.id)}
+                  onOpen={() => setOpenStationId(s.id)}
                 />
               ))
             )}
@@ -484,6 +493,17 @@ function Index() {
           </Link>
         </p>
       </div>
+
+      {openStation && (
+        <StationDetail
+          station={openStation}
+          fuel={fuel}
+          favorite={favorites.includes(openStation.id)}
+          onToggleFavorite={() => toggleFavorite(openStation.id)}
+          onClose={() => setOpenStationId(null)}
+        />
+      )}
+
 
       <nav className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-ice/10 bg-frost/70 px-6 py-3 backdrop-blur-xl">
         <div className="flex items-center justify-around">
