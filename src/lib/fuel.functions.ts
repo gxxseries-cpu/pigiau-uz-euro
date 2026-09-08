@@ -108,25 +108,29 @@ export const getFuelData = createServerFn({ method: "GET" }).handler(
       }
     }
 
-    const stations: Station[] = (stationRows ?? []).map((s) => ({
-      id: s.id,
-      brand: s.brand,
-      area: s.area ?? "",
-      address: s.address,
-      city: s.city,
-      lat: s.lat,
-      lon: s.lon,
-      distanceKm: 0,
-      updatedAt: updated.get(s.id) ?? "—",
-      prices: prices.get(s.id) ?? {},
-    }));
+    const stations: Station[] = (stationRows ?? [])
+      .map((s) => ({ s, label: brandLabel(s.brand) }))
+      .filter((x): x is { s: (typeof stationRows)[number]; label: string } => x.label !== null)
+      .map(({ s, label }) => ({
+        id: s.id,
+        brand: label,
+        area: s.area ?? "",
+        address: s.address,
+        city: s.city,
+        lat: s.lat,
+        lon: s.lon,
+        distanceKm: 0,
+        updatedAt: updated.get(s.id) ?? "—",
+        prices: prices.get(s.id) ?? {},
+      }));
 
     return {
       stations,
       brands: [...new Set(stations.map((s) => s.brand))].sort(),
-      cities: [...new Set(stations.map((s) => s.city))].sort(),
+      cities: [...new Set(stations.map((s) => s.city))].sort((a, b) => a.localeCompare(b, "lt")),
       latestDate,
       history,
     };
+
   },
 );
