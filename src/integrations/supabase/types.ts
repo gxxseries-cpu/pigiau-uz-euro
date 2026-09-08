@@ -50,6 +50,36 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscribers: {
+        Row: {
+          city: string | null
+          created_at: string
+          fuel: string | null
+          id: string
+          platform: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          fuel?: string | null
+          id?: string
+          platform?: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          fuel?: string | null
+          id?: string
+          platform?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       station_prices: {
         Row: {
           fuel_type: string
