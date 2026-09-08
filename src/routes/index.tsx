@@ -14,7 +14,9 @@ import {
   FUEL_LABELS,
   formatPrice,
   haversineKm,
+  isMajorBrand,
   nearestCity,
+  norm,
   type FuelType,
   type Station,
 } from "@/data/stations";
