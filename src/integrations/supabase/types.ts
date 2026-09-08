@@ -50,6 +50,48 @@ export type Database = {
         }
         Relationships: []
       }
+      market_signal: {
+        Row: {
+          brent_change_pct: number
+          brent_eur: number
+          brent_eur_prev: number
+          brent_usd: number
+          brent_usd_prev: number
+          created_at: string
+          direction: string
+          eur_usd: number
+          eur_usd_prev: number
+          fx_change_pct: number
+          signal_date: string
+        }
+        Insert: {
+          brent_change_pct: number
+          brent_eur: number
+          brent_eur_prev: number
+          brent_usd: number
+          brent_usd_prev: number
+          created_at?: string
+          direction: string
+          eur_usd: number
+          eur_usd_prev: number
+          fx_change_pct: number
+          signal_date: string
+        }
+        Update: {
+          brent_change_pct?: number
+          brent_eur?: number
+          brent_eur_prev?: number
+          brent_usd?: number
+          brent_usd_prev?: number
+          created_at?: string
+          direction?: string
+          eur_usd?: number
+          eur_usd_prev?: number
+          fx_change_pct?: number
+          signal_date?: string
+        }
+        Relationships: []
+      }
       push_subscribers: {
         Row: {
           city: string | null
