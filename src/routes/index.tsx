@@ -174,17 +174,18 @@ function Index() {
     );
   }, []);
 
-  const origin = coords ?? CITY_CENTERS[city] ?? { lat: 54.6872, lon: 25.2797 };
-
   /** Miestų centrai iš pačių degalinių – kad ir be tikslių koordinačių atstumas būtų apytikris. */
   const cityFallback = useMemo(() => {
     const acc: Record<string, { lat: number; lon: number; n: number }> = {};
     for (const s of data.stations) {
       if (s.lat === null || s.lon === null) continue;
-      const c = (acc[s.city] ??= { lat: 0, lon: 0, n: 0 });
-      c.lat += s.lat;
-      c.lon += s.lon;
-      c.n += 1;
+      for (const name of [s.city, s.area]) {
+        if (!name) continue;
+        const c = (acc[name] ??= { lat: 0, lon: 0, n: 0 });
+        c.lat += s.lat;
+        c.lon += s.lon;
+        c.n += 1;
+      }
     }
     const out: Record<string, { lat: number; lon: number }> = {};
     for (const [cityName, v] of Object.entries(acc)) {
@@ -192,6 +193,10 @@ function Index() {
     }
     return out;
   }, [data.stations]);
+
+  const origin =
+    coords ?? CITY_CENTERS[city] ?? cityFallback[city] ?? { lat: 54.6872, lon: 25.2797 };
+
 
   const withDistance = useMemo<Station[]>(
     () =>
