@@ -12,7 +12,7 @@ type Field =
   | "lpg"
   | "marked_diesel";
 
-type Row = {
+export type Row = {
   brand: string;
   address: string;
   city: string;
@@ -206,7 +206,7 @@ export async function importRows(rows: Row[], date: string) {
   return { stations: stationRows.length, prices: priceRows.length };
 }
 
-/** Visas kasdienis ciklas: nuoroda -> failas -> DB -> būsenos įrašas. */
+/** Visas kasdienis ciklas: ENA Power BI API (arba atsarginis failo URL) -> DB -> būsenos įrašas. */
 export async function runDailyImport() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -235,8 +235,25 @@ export async function runDailyImport() {
     return { status, message, ...counts };
   };
 
+  // 1. Pirmiausia bandoma pirminė ENA ataskaita (Power BI) – nebereikia jokios nuorodos.
+  try {
+    const { fetchEnaPowerBiRows } = await import("./powerbi.server");
+    const { rows, date } = await fetchEnaPowerBiRows();
+    const counts = await importRows(rows, date);
+    if (counts.prices > 0) {
+      return finish(
+        "sėkmė",
+        `Atnaujinta iš ENA: ${counts.prices} kainų (${counts.stations} degalinių).`,
+        counts,
+      );
+    }
+  } catch (err) {
+    console.error("ENA Power BI importo klaida:", err);
+  }
+
+  // 2. Atsarginis kelias – administratoriaus nurodytas Excel/CSV failas.
   if (!url) {
-    return finish("klaida", "Nenurodyta kainų failo nuoroda.");
+    return finish("klaida", "Nepavyko gauti kainų iš ENA ataskaitos ir nenurodyta atsarginė failo nuoroda.");
   }
 
   try {
@@ -248,7 +265,7 @@ export async function runDailyImport() {
     const counts = await importRows(rows, date);
     return finish(
       "sėkmė",
-      `Atnaujinta ${counts.prices} kainų (${counts.stations} degalinių).`,
+      `Atnaujinta iš failo: ${counts.prices} kainų (${counts.stations} degalinių).`,
       counts,
     );
   } catch (err) {
