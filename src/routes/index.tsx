@@ -411,7 +411,7 @@ function Index() {
               >
                 Visi
               </button>
-              {data.brands.map((b) => (
+              {[...data.majorBrands, OTHER_BRANDS].map((b) => (
                 <button
                   key={b}
                   onClick={() => setBrand(b)}
@@ -451,8 +451,10 @@ function Index() {
             <div className="mt-3 space-y-3">
               {list.length === 0 && (
                 <p className="rounded-2xl bg-ice/5 p-4 text-sm text-ice/60 ring-1 ring-ice/15">
-                  Pagal pasirinktus filtrus degalinių nerasta. Pabandyk didesnį spindulį arba kitą
-                  tinklą.
+                  {brand
+                    ? `Šiuo metu ${brand === OTHER_BRANDS ? "mažesnių tinklų" : brand} degalinių ${city} vietovėje nerasta.`
+                    : `Šiuo metu ${city} vietovėje degalinių su ${FUEL_LABELS[fuel].toLowerCase()} kaina nerasta.`}{" "}
+                  {manualCity ? "Pabandyk kitą tinklą arba kuro tipą." : "Pabandyk didesnį spindulį arba kitą tinklą."}
                 </p>
               )}
               {list.map((s, i) => (
