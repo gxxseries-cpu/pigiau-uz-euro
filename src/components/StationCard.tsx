@@ -58,18 +58,27 @@ export function StationCard({
       {cheapest && (
         <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-mint to-transparent" />
       )}
-      <div className="flex items-start justify-between">
-        <div>
-          {cheapest && (
-            <span className="inline-block rounded-full bg-mint px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-frost">
-              Pigiausia
+      <div className="flex items-start justify-between gap-2">
+        <button onClick={onOpen} className="flex flex-1 items-start gap-2.5 text-left">
+          <BrandLogo brand={station.brand} size={30} />
+          <span className="block">
+            {cheapest && (
+              <span className="mb-1 inline-block rounded-full bg-mint px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-frost">
+                Pigiausia
+              </span>
+            )}
+            <span className="block text-base font-semibold">
+              {station.brand}
+              {station.area ? ` · ${station.area}` : ""}
             </span>
-          )}
-          <h3 className={`text-base font-semibold ${cheapest ? "mt-1.5" : ""}`}>
-            {station.brand} · {station.area}
-          </h3>
-          <p className="text-[12px] text-ice/60">{station.address}</p>
-        </div>
+            <span className="block text-[12px] text-ice/60">{station.address}</span>
+            {onOpen && (
+              <span className="mt-0.5 block text-[10px] text-mint">
+                Daugiau informacijos ir nuolaidos →
+              </span>
+            )}
+          </span>
+        </button>
         <button onClick={onToggleFavorite} className="text-lg" aria-label="Mėgstama degalinė">
           {favorite ? "💚" : "🤍"}
         </button>
