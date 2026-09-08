@@ -169,6 +169,7 @@ function Index() {
 
 
   const favoriteStations = withDistance.filter((s) => favorites.includes(s.id));
+  const openStation = withDistance.find((s) => s.id === openStationId) ?? null;
   const cheapest = list[0];
   const priciest = list[list.length - 1];
   const monthlySaving =
