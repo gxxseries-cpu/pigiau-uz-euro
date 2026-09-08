@@ -344,21 +344,22 @@ function Index() {
               />
               {cityQuery.trim().length > 0 ? (
                 <div className="mt-2 max-h-56 space-y-1 overflow-y-auto">
-                  {matchingCities.length === 0 && (
+                  {matchingPlaces.length === 0 && (
                     <p className="px-1 py-2 text-[11px] text-ice/50">
                       Tokios vietovės kainų nerasta. Pabandyk kitą pavadinimą.
                     </p>
                   )}
-                  {matchingCities.map((c) => (
+                  {matchingPlaces.map((p) => (
                     <button
-                      key={c}
-                      onClick={() => selectCity(c)}
+                      key={`${p.kind}:${p.name}`}
+                      onClick={() => selectCity(p.name, p.kind)}
                       className="flex w-full items-center justify-between rounded-lg bg-ice/5 px-3 py-2 text-left text-xs text-ice/80 ring-1 ring-ice/10"
                     >
-                      <span>{c}</span>
-                      <span className="text-[10px] text-ice/40">
-                        {cityCounts[c] ?? 0} degalinių
+                      <span>
+                        {p.name}
+                        {p.kind === "area" ? " · rajonas" : ""}
                       </span>
+                      <span className="text-[10px] text-ice/40">{p.count} degalinių</span>
                     </button>
                   ))}
                 </div>
