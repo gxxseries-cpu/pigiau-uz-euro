@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
+import { MarketSignalBadge, MarketSignalCard } from "@/components/MarketSignal";
 import { PriceTrend } from "@/components/PriceTrend";
 import { PushOptIn } from "@/components/PushOptIn";
 import { StationCard } from "@/components/StationCard";
@@ -17,7 +18,7 @@ import {
   type FuelType,
   type Station,
 } from "@/data/stations";
-import { getFuelData } from "@/lib/fuel.functions";
+import { getFuelData, getMarketSignal } from "@/lib/fuel.functions";
 
 const TITLE = "Pigiausi Degalai – degalų kainos Lietuvoje";
 const DESC =
@@ -26,6 +27,11 @@ const DESC =
 const fuelQuery = queryOptions({
   queryKey: ["fuel-data"],
   queryFn: () => getFuelData(),
+});
+
+const signalQuery = queryOptions({
+  queryKey: ["market-signal"],
+  queryFn: () => getMarketSignal(),
 });
 
 export const Route = createFileRoute("/")({
@@ -41,7 +47,12 @@ export const Route = createFileRoute("/")({
       { name: "twitter:description", content: DESC },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(fuelQuery),
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.queryClient.ensureQueryData(fuelQuery),
+      context.queryClient.ensureQueryData(signalQuery),
+    ]);
+  },
   errorComponent: () => (
     <div className="grid min-h-screen place-items-center bg-frost p-6 text-center text-ice">
       <p className="text-sm text-ice/70">
@@ -68,6 +79,7 @@ type TabId = (typeof TABS)[number]["id"];
 
 function Index() {
   const { data } = useSuspenseQuery(fuelQuery);
+  const { data: signal } = useSuspenseQuery(signalQuery);
   const cities = data.cities.length > 0 ? data.cities : Object.keys(CITY_CENTERS);
 
   const [city, setCity] = useState(() => (cities.includes("Vilnius") ? "Vilnius" : cities[0]!));
@@ -403,6 +415,7 @@ function Index() {
                   favorite={favorites.includes(s.id)}
                   onToggleFavorite={() => toggleFavorite(s.id)}
                   onOpen={() => setOpenStationId(s.id)}
+                  signal={signal}
                 />
               ))}
             </div>
@@ -422,7 +435,12 @@ function Index() {
           </>
         )}
 
-        {tab === "trend" && <PriceTrend fuel={fuel} title={city} points={trendPoints} />}
+        {tab === "trend" && (
+          <>
+            <MarketSignalCard signal={signal} />
+            <PriceTrend fuel={fuel} title={city} points={trendPoints} />
+          </>
+        )}
 
         {tab === "calc" && (
           <section className="mt-5 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
@@ -480,6 +498,7 @@ function Index() {
                   favorite
                   onToggleFavorite={() => toggleFavorite(s.id)}
                   onOpen={() => setOpenStationId(s.id)}
+                  signal={signal}
                 />
               ))
             )}
