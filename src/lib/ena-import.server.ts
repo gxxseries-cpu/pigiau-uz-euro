@@ -232,6 +232,18 @@ export async function runDailyImport() {
         last_prices: counts.prices,
       })
       .eq("id", true);
+
+    // Kainos atsinaujino – išsiunčiame pranešimus prenumeratoriams.
+    if (status === "sėkmė" && counts.prices > 0) {
+      try {
+        const { sendPriceUpdateNotifications } = await import("./push.server");
+        const push = await sendPriceUpdateNotifications();
+        console.log(`Pranešimai: išsiųsta ${push.sent}, praleista ${push.skipped}.`);
+      } catch (err) {
+        console.error("Pranešimų siuntimo klaida:", err);
+      }
+    }
+
     return { status, message, ...counts };
   };
 
