@@ -6,6 +6,8 @@ import { PriceTrend } from "@/components/PriceTrend";
 import { StationCard } from "@/components/StationCard";
 import {
   CITY_CENTERS,
+  MAIN_CITIES,
+
   FUEL_LABELS,
   formatPrice,
   haversineKm,
@@ -72,6 +74,7 @@ function Index() {
     "tikrinama",
   );
   const [pickingCity, setPickingCity] = useState(false);
+  const [cityQuery, setCityQuery] = useState("");
   const [fuel, setFuel] = useState<FuelType>("diesel");
   const [radius, setRadius] = useState(10);
   const [brand, setBrand] = useState<string | null>(null);
@@ -79,6 +82,29 @@ function Index() {
   const [tab, setTab] = useState<TabId>("nearby");
   const [consumption, setConsumption] = useState("6,5");
   const [tripKm, setTripKm] = useState("300");
+
+  const quickCities = MAIN_CITIES.filter((c) => cities.includes(c));
+
+  const cityCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const s of data.stations) counts[s.city] = (counts[s.city] ?? 0) + 1;
+    return counts;
+  }, [data.stations]);
+
+  const matchingCities = useMemo(() => {
+    const q = cityQuery.trim().toLowerCase();
+    if (!q) return [];
+    return cities.filter((c) => c.toLowerCase().includes(q)).slice(0, 30);
+  }, [cities, cityQuery]);
+
+  const selectCity = (c: string) => {
+    setCity(c);
+    setCoords(null);
+    setLocationState("rankinė");
+    setPickingCity(false);
+    setCityQuery("");
+  };
+
 
   useEffect(() => {
     const stored = localStorage.getItem("degalai-favorites");
