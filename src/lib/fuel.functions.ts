@@ -7,6 +7,15 @@ import type { FuelType, Station } from "@/data/stations";
 
 
 export type TrendPoint = { date: string; avg: number };
+export type MarketSignal = {
+  date: string;
+  direction: "up" | "down" | "flat";
+  brentChangePct: number;
+  fxChangePct: number;
+  brentUsd: number;
+  brentEur: number;
+  eurUsd: number;
+};
 export type FuelData = {
   stations: Station[];
   brands: string[];
@@ -174,3 +183,36 @@ export const getStationTrend = createServerFn({ method: "GET" })
     }
     return (rows ?? []).map((r) => ({ date: r.price_date, avg: Number(r.price) }));
   });
+
+/**
+ * Dienos naftos rinkos indikatorius. Jei duomenų nėra arba jie pasenę
+ * (senesni nei vakar), grąžinama null – geriau nerodyti, nei rodyti klaidingai.
+ */
+export const getMarketSignal = createServerFn({ method: "GET" }).handler(
+  async (): Promise<MarketSignal | null> => {
+    const supabase = publicClient();
+    const { data, error } = await supabase
+      .from("market_signal")
+      .select(
+        "signal_date, direction, brent_change_pct, fx_change_pct, brent_usd, brent_eur, eur_usd",
+      )
+      .order("signal_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    if (data.signal_date < sinceDate(1)) return null;
+
+    return {
+      date: data.signal_date,
+      direction: (data.direction === "up" || data.direction === "down"
+        ? data.direction
+        : "flat") as MarketSignal["direction"],
+      brentChangePct: Number(data.brent_change_pct),
+      fxChangePct: Number(data.fx_change_pct),
+      brentUsd: Number(data.brent_usd),
+      brentEur: Number(data.brent_eur),
+      eurUsd: Number(data.eur_usd),
+    };
+  },
+);
