@@ -118,14 +118,54 @@ function AdminPage() {
   const claimFn = useServerFn(claimAdmin);
   const importFn = useServerFn(importPrices);
   const geocodeFn = useServerFn(geocodeStations);
+  const sourceFn = useServerFn(getImportSource);
+  const saveSourceFn = useServerFn(saveImportSource);
+  const runNowFn = useServerFn(runImportNow);
 
   const status = useQuery({ queryKey: ["admin-status"], queryFn: () => statusFn() });
+  const source = useQuery({
+    queryKey: ["import-source"],
+    queryFn: () => sourceFn(),
+    enabled: Boolean(status.data?.isAdmin),
+  });
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [issues, setIssues] = useState<string[]>([]);
   const [result, setResult] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [url, setUrl] = useState("");
+
+  const sourceUrl = source.data?.source_url ?? "";
+
+  const doSaveSource = async () => {
+    setBusy(true);
+    setResult(null);
+    try {
+      await saveSourceFn({ data: { url: url.trim() } });
+      await source.refetch();
+      setUrl("");
+      setResult("Nuoroda išsaugota. Kainos bus atnaujinamos kasdien 10:30.");
+    } catch {
+      setResult("Neteisinga nuoroda – įklijuok pilną adresą (pvz. https://…/kainos.xlsx).");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const doRunNow = async () => {
+    setBusy(true);
+    setResult(null);
+    try {
+      const res = await runNowFn();
+      setResult(res.message);
+      await source.refetch();
+    } catch (err) {
+      setResult(err instanceof Error ? err.message : "Nepavyko atnaujinti.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const onFile = async (file: File) => {
     setResult(null);
