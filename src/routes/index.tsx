@@ -366,6 +366,9 @@ function Index() {
           </div>
         </section>
 
+        <PushOptIn city={city} fuel={fuel} />
+
+
         {tab === "nearby" && (
           <>
             <div className="mt-5 flex items-end justify-between">
@@ -398,6 +401,7 @@ function Index() {
                   cheapest={i === 0}
                   favorite={favorites.includes(s.id)}
                   onToggleFavorite={() => toggleFavorite(s.id)}
+                  onOpen={() => setOpenStationId(s.id)}
                 />
               ))}
             </div>
@@ -474,6 +478,7 @@ function Index() {
                   fuel={fuel}
                   favorite
                   onToggleFavorite={() => toggleFavorite(s.id)}
+                  onOpen={() => setOpenStationId(s.id)}
                 />
               ))
             )}
