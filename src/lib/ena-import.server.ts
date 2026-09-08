@@ -233,6 +233,15 @@ export async function runDailyImport() {
       })
       .eq("id", true);
 
+    // Perskaičiuojame naftos rinkos indikatorių (nepavykus – tiesiog nerodomas).
+    try {
+      const { updateMarketSignal } = await import("./market.server");
+      const signal = await updateMarketSignal();
+      console.log(`Rinkos indikatorius: ${signal.direction} (${signal.brent_change_pct} %).`);
+    } catch (err) {
+      console.error("Rinkos indikatoriaus klaida:", err);
+    }
+
     // Kainos atsinaujino – išsiunčiame pranešimus prenumeratoriams.
     if (status === "sėkmė" && counts.prices > 0) {
       try {

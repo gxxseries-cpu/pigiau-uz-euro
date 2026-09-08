@@ -17,6 +17,7 @@ type Props = {
   favorite: boolean;
   onToggleFavorite: () => void;
   onOpen?: () => void;
+  signal?: MarketSignal | null;
 };
 
 const SECONDARY: FuelType[] = ["p95", "p98", "diesel", "lpg"];
@@ -28,6 +29,7 @@ export function StationCard({
   favorite,
   onToggleFavorite,
   onOpen,
+  signal,
 }: Props) {
   const secondary = SECONDARY.filter((f) => f !== fuel).slice(0, 3);
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
@@ -88,7 +90,10 @@ export function StationCard({
 
       <div className="mt-3 flex items-end justify-between">
         <div>
-          <p className="text-[11px] text-ice/60">{FUEL_LABELS[fuel]} / l</p>
+          <p className="flex items-center gap-1.5 text-[11px] text-ice/60">
+            {FUEL_LABELS[fuel]} / l
+            <MarketSignalBadge signal={signal ?? null} />
+          </p>
           <p className="text-2xl font-bold tracking-tight">
             {formatPrice(station.prices[fuel]).replace(" €", "")}{" "}
             <span className="text-sm font-medium text-ice/60">€</span>
