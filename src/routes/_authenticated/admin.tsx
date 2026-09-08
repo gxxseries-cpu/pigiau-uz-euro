@@ -229,7 +229,7 @@ function AdminPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold">Kainų pildymas</h1>
-            <p className="text-[11px] text-ice/50">1 etapas – rankinis importas</p>
+            <p className="text-[11px] text-ice/50">Automatinis atnaujinimas kasdien 10:30</p>
           </div>
           <div className="flex gap-2">
             <Link to="/" className="rounded-lg bg-ice/5 px-2.5 py-1.5 text-[11px] ring-1 ring-ice/10">
