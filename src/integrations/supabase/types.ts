@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      import_source: {
+        Row: {
+          created_at: string
+          id: boolean
+          last_message: string | null
+          last_prices: number
+          last_run_at: string | null
+          last_stations: number
+          last_status: string | null
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: boolean
+          last_message?: string | null
+          last_prices?: number
+          last_run_at?: string | null
+          last_stations?: number
+          last_status?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: boolean
+          last_message?: string | null
+          last_prices?: number
+          last_run_at?: string | null
+          last_stations?: number
+          last_status?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       station_prices: {
         Row: {
           fuel_type: string

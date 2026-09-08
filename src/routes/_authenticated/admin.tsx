@@ -8,7 +8,10 @@ import {
   claimAdmin,
   geocodeStations,
   getAdminStatus,
+  getImportSource,
   importPrices,
+  runImportNow,
+  saveImportSource,
 } from "@/lib/admin.functions";
 
 const TITLE = "Kainų pildymas – Pigiausi Degalai";
@@ -115,14 +118,54 @@ function AdminPage() {
   const claimFn = useServerFn(claimAdmin);
   const importFn = useServerFn(importPrices);
   const geocodeFn = useServerFn(geocodeStations);
+  const sourceFn = useServerFn(getImportSource);
+  const saveSourceFn = useServerFn(saveImportSource);
+  const runNowFn = useServerFn(runImportNow);
 
   const status = useQuery({ queryKey: ["admin-status"], queryFn: () => statusFn() });
+  const source = useQuery({
+    queryKey: ["import-source"],
+    queryFn: () => sourceFn(),
+    enabled: Boolean(status.data?.isAdmin),
+  });
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [issues, setIssues] = useState<string[]>([]);
   const [result, setResult] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [url, setUrl] = useState("");
+
+  const sourceUrl = source.data?.source_url ?? "";
+
+  const doSaveSource = async () => {
+    setBusy(true);
+    setResult(null);
+    try {
+      await saveSourceFn({ data: { url: url.trim() } });
+      await source.refetch();
+      setUrl("");
+      setResult("Nuoroda išsaugota. Kainos bus atnaujinamos kasdien 10:30.");
+    } catch {
+      setResult("Neteisinga nuoroda – įklijuok pilną adresą (pvz. https://…/kainos.xlsx).");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const doRunNow = async () => {
+    setBusy(true);
+    setResult(null);
+    try {
+      const res = await runNowFn();
+      setResult(res.message);
+      await source.refetch();
+    } catch (err) {
+      setResult(err instanceof Error ? err.message : "Nepavyko atnaujinti.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const onFile = async (file: File) => {
     setResult(null);
@@ -186,7 +229,7 @@ function AdminPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold">Kainų pildymas</h1>
-            <p className="text-[11px] text-ice/50">1 etapas – rankinis importas</p>
+            <p className="text-[11px] text-ice/50">Automatinis atnaujinimas kasdien 10:30</p>
           </div>
           <div className="flex gap-2">
             <Link to="/" className="rounded-lg bg-ice/5 px-2.5 py-1.5 text-[11px] ring-1 ring-ice/10">
@@ -229,6 +272,52 @@ function AdminPage() {
         {status.data?.isAdmin && (
           <>
             <section className="mt-5 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
+              <p className="text-sm font-semibold">Automatinis atnaujinimas</p>
+              <p className="mt-1 text-[11px] text-ice/50">
+                Kasdien 10:30 kainos pačios nusiskaito iš nurodytos Excel arba CSV failo nuorodos –
+                rankinio įkėlimo nebereikia.
+              </p>
+
+              <p className="mt-3 text-[11px] text-ice/60">
+                Dabartinė nuoroda:{" "}
+                <span className="break-all text-ice/80">
+                  {sourceUrl ? sourceUrl : "dar nenurodyta"}
+                </span>
+              </p>
+
+              <input
+                type="url"
+                inputMode="url"
+                placeholder="https://…/degalu-kainos.xlsx"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                className="mt-3 w-full rounded-xl bg-ice/5 px-3 py-2 text-sm text-ice ring-1 ring-ice/10 outline-none placeholder:text-ice/30 focus:ring-mint/50"
+              />
+              <button
+                onClick={doSaveSource}
+                disabled={busy || url.trim().length === 0}
+                className="mt-2 w-full rounded-xl bg-ice/10 px-4 py-2.5 text-sm font-semibold text-ice ring-1 ring-ice/15 disabled:opacity-60"
+              >
+                Išsaugoti nuorodą
+              </button>
+              <button
+                onClick={doRunNow}
+                disabled={busy || !sourceUrl}
+                className="mt-2 w-full rounded-xl bg-mint px-4 py-2.5 text-sm font-semibold text-frost disabled:opacity-60"
+              >
+                {busy ? "Atnaujinama…" : "Atnaujinti dabar"}
+              </button>
+
+              {source.data?.last_run_at && (
+                <p className="mt-3 text-[11px] text-ice/50">
+                  Paskutinis atnaujinimas:{" "}
+                  {new Date(source.data.last_run_at).toLocaleString("lt-LT")} ·{" "}
+                  {source.data.last_status} · {source.data.last_message}
+                </p>
+              )}
+            </section>
+
+            <section className="mt-4 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
               <p className="text-sm font-semibold">Kainų failas (CSV)</p>
               <p className="mt-1 text-[11px] text-ice/50">
                 Stulpeliai: tinklas; adresas; miestas; rajonas; dyzelinas; b95; b98; snd; dažytas

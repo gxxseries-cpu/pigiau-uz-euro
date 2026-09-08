@@ -172,3 +172,41 @@ export const geocodeStations = createServerFn({ method: "POST" })
 
     return { processed: missing?.length ?? 0, geocoded: done };
   });
+
+/** Automatinio atnaujinimo nustatymai ir paskutinio paleidimo būsena. */
+export const getImportSource = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { data } = await context.supabase
+      .from("import_source")
+      .select("source_url, last_run_at, last_status, last_message, last_stations, last_prices")
+      .eq("id", true)
+      .maybeSingle();
+    return data ?? null;
+  });
+
+/** Išsaugo kainų failo nuorodą, iš kurios kasdien nusiskaitomos kainos. */
+export const saveImportSource = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z.object({ url: z.string().url().max(2000) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("import_source")
+      .update({ source_url: data.url.trim() })
+      .eq("id", true);
+    if (error) throw new Error(`Nepavyko išsaugoti nuorodos: ${error.message}`);
+    return { ok: true };
+  });
+
+/** Paleidžia atnaujinimą iš karto (tas pats veiksmas, kurį kasdien vykdo tvarkaraštis). */
+export const runImportNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { runDailyImport } = await import("@/lib/ena-import.server");
+    return runDailyImport();
+  });
