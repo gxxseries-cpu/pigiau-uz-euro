@@ -185,20 +185,33 @@ function Index() {
   );
 
   const cityStations = useMemo(
-    () => withDistance.filter((s) => s.city === city),
+    () => withDistance.filter((s) => norm(s.city) === norm(city)),
     [withDistance, city],
   );
 
   /** Kai vietovė pasirinkta rankiniu būdu, spindulys netaikomas – rodoma visa vietovė. */
   const manualCity = coords === null;
 
+  /** Tinklo atitikimas – be didžiųjų raidžių ir tarpų skirtumų; „Kiti“ = visi maži tinklai. */
+  const brandMatch = (s: Station) => {
+    if (!brand) return true;
+    if (brand === OTHER_BRANDS) return !isMajorBrand(s.brand);
+    return norm(s.brand) === norm(brand);
+  };
+
   const list = useMemo(() => {
-    const base = (manualCity ? cityStations : withDistance)
-      .filter((s) => (brand ? s.brand === brand : true))
-      .filter((s) => s.prices[fuel] !== undefined);
+    const pool = manualCity ? cityStations : withDistance;
+    const afterBrand = pool.filter(brandMatch);
+    const base = afterBrand.filter((s) => s.prices[fuel] !== undefined);
+
+    if (import.meta.env.DEV) {
+      console.debug(
+        `[filtrai] iš viso ${withDistance.length} → vietovė „${city}“ ${cityStations.length} → tinklas „${brand ?? "visi"}“ ${afterBrand.length} → su ${fuel} kaina ${base.length}`,
+      );
+    }
 
     if (manualCity) {
-      return base.sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0)).slice(0, 10);
+      return base.sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0)).slice(0, 20);
     }
 
     const nearby = base.filter((s) => s.distanceKm <= radius);
@@ -208,7 +221,8 @@ function Index() {
         ? nearby
         : [...base].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 5);
     return source.sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0)).slice(0, 5);
-  }, [cityStations, withDistance, radius, brand, fuel, manualCity]);
+  }, [cityStations, withDistance, radius, brand, fuel, manualCity, city]);
+
 
 
 
