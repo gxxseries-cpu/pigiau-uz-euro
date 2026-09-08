@@ -50,9 +50,10 @@ function buildBody(where: unknown[], start: number, count: number) {
                       },
                     ],
                   },
+                  // DataReduction privalo būti Binding viduje – kitaip API grąžina tik 100 eilučių.
+                  DataReduction: { DataVolume: 3, Primary: { Window: { Count: count } } },
+                  Version: 1,
                 },
-                DataReduction: { DataVolume: 3, Primary: { Window: { Count: count } } },
-                Version: 1,
               },
               ExecutionMetricsKind: 1,
             },
