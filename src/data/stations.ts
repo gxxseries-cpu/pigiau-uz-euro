@@ -4,15 +4,37 @@ export const FUEL_LABELS: Record<FuelType, string> = {
   diesel: "Dyzelinas",
   p95: "Benzinas 95",
   p98: "Benzinas 98",
-  lpg: "SND",
+  lpg: "Dujos",
 };
 
 export const FUEL_SHORT: Record<FuelType, string> = {
   diesel: "Dyz",
   p95: "B95",
   p98: "B98",
-  lpg: "SND",
+  lpg: "Dujos",
 };
+
+/** Greitam pasirinkimui rodomi didieji miestai. */
+export const MAIN_CITIES = ["Vilnius", "Kaunas", "Klaipėda", "Šiauliai", "Panevėžys"];
+
+/** Rodomi tik pagrindiniai, visoje Lietuvoje paplitę degalinių tinklai. */
+const BRAND_RULES: { match: string; label: string }[] = [
+  { match: "viada", label: "Viada" },
+  { match: "circle k", label: "Circle K" },
+  { match: "neste", label: "Neste" },
+  { match: "baltic petroleum", label: "Baltic Petroleum" },
+  { match: "orlen", label: "Orlen" },
+];
+
+/** Grąžina rodomą tinklo pavadinimą arba null, jei tinklas nerodomas. */
+export function brandLabel(raw: string): string | null {
+  const lower = raw.toLowerCase();
+  for (const rule of BRAND_RULES) {
+    if (lower.includes(rule.match)) return rule.label;
+  }
+  return null;
+}
+
 
 export type Station = {
   id: string;
@@ -79,5 +101,7 @@ export function formatPrice(value?: number) {
 }
 
 export function formatKm(value: number) {
+  if (!Number.isFinite(value)) return "";
   return `${value.toFixed(1).replace(".", ",")} km`;
 }
+

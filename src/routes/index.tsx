@@ -6,6 +6,8 @@ import { PriceTrend } from "@/components/PriceTrend";
 import { StationCard } from "@/components/StationCard";
 import {
   CITY_CENTERS,
+  MAIN_CITIES,
+
   FUEL_LABELS,
   formatPrice,
   haversineKm,
@@ -72,6 +74,7 @@ function Index() {
     "tikrinama",
   );
   const [pickingCity, setPickingCity] = useState(false);
+  const [cityQuery, setCityQuery] = useState("");
   const [fuel, setFuel] = useState<FuelType>("diesel");
   const [radius, setRadius] = useState(10);
   const [brand, setBrand] = useState<string | null>(null);
@@ -79,6 +82,29 @@ function Index() {
   const [tab, setTab] = useState<TabId>("nearby");
   const [consumption, setConsumption] = useState("6,5");
   const [tripKm, setTripKm] = useState("300");
+
+  const quickCities = MAIN_CITIES.filter((c) => cities.includes(c));
+
+  const cityCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const s of data.stations) counts[s.city] = (counts[s.city] ?? 0) + 1;
+    return counts;
+  }, [data.stations]);
+
+  const matchingCities = useMemo(() => {
+    const q = cityQuery.trim().toLowerCase();
+    if (!q) return [];
+    return cities.filter((c) => c.toLowerCase().includes(q)).slice(0, 30);
+  }, [cities, cityQuery]);
+
+  const selectCity = (c: string) => {
+    setCity(c);
+    setCoords(null);
+    setLocationState("rankinė");
+    setPickingCity(false);
+    setCityQuery("");
+  };
+
 
   useEffect(() => {
     const stored = localStorage.getItem("degalai-favorites");
@@ -124,16 +150,20 @@ function Index() {
     [withDistance, city],
   );
 
+  /** Kai vietovė pasirinkta rankiniu būdu, spindulys netaikomas – rodoma visa vietovė. */
+  const manualCity = coords === null;
+
   const list = useMemo(
     () =>
       cityStations
-        .filter((s) => s.distanceKm <= radius)
+        .filter((s) => (manualCity ? true : s.distanceKm <= radius))
         .filter((s) => (brand ? s.brand === brand : true))
         .filter((s) => s.prices[fuel] !== undefined)
         .sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0))
-        .slice(0, 5),
-    [cityStations, radius, brand, fuel],
+        .slice(0, manualCity ? 10 : 5),
+    [cityStations, radius, brand, fuel, manualCity],
   );
+
 
   const favoriteStations = withDistance.filter((s) => favorites.includes(s.id));
   const cheapest = list[0];
@@ -217,27 +247,53 @@ function Index() {
           </div>
 
           {pickingCity && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {cities.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => {
-                    setCity(c);
-                    setCoords(null);
-                    setLocationState("rankinė");
-                    setPickingCity(false);
-                  }}
-                  className={
-                    c === city
-                      ? "rounded-full bg-mint px-3 py-1.5 text-xs font-semibold text-frost"
-                      : "rounded-full bg-ice/5 px-3 py-1.5 text-xs text-ice/70 ring-1 ring-ice/10"
-                  }
-                >
-                  {c}
-                </button>
-              ))}
+            <div className="mt-3">
+              <input
+                value={cityQuery}
+                onChange={(e) => setCityQuery(e.target.value)}
+                placeholder="Ieškok miesto, miestelio ar rajono…"
+                className="w-full rounded-xl bg-ice/5 px-3 py-2 text-sm text-ice ring-1 ring-ice/10 outline-none placeholder:text-ice/40 focus:ring-mint/50"
+              />
+              {cityQuery.trim().length > 0 ? (
+                <div className="mt-2 max-h-56 space-y-1 overflow-y-auto">
+                  {matchingCities.length === 0 && (
+                    <p className="px-1 py-2 text-[11px] text-ice/50">
+                      Tokios vietovės kainų nerasta. Pabandyk kitą pavadinimą.
+                    </p>
+                  )}
+                  {matchingCities.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => selectCity(c)}
+                      className="flex w-full items-center justify-between rounded-lg bg-ice/5 px-3 py-2 text-left text-xs text-ice/80 ring-1 ring-ice/10"
+                    >
+                      <span>{c}</span>
+                      <span className="text-[10px] text-ice/40">
+                        {cityCounts[c] ?? 0} degalinių
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {quickCities.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => selectCity(c)}
+                      className={
+                        c === city
+                          ? "rounded-full bg-mint px-3 py-1.5 text-xs font-semibold text-frost"
+                          : "rounded-full bg-ice/5 px-3 py-1.5 text-xs text-ice/70 ring-1 ring-ice/10"
+                      }
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
+
 
           <div className="mt-3 flex flex-wrap gap-2">
             {FUELS.map((f) => (
@@ -255,24 +311,27 @@ function Index() {
             ))}
           </div>
 
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-[11px] text-ice/50">Spindulys</span>
-            <div className="flex gap-1">
-              {RADIUSES.map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setRadius(r)}
-                  className={
-                    r === radius
-                      ? "rounded-md bg-mint/15 px-2 py-1 text-[11px] font-medium text-mint ring-1 ring-mint/30"
-                      : "rounded-md bg-ice/5 px-2 py-1 text-[11px] text-ice/60 ring-1 ring-ice/10"
-                  }
-                >
-                  {r} km
-                </button>
-              ))}
+          {!manualCity && (
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-[11px] text-ice/50">Spindulys</span>
+              <div className="flex gap-1">
+                {RADIUSES.map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setRadius(r)}
+                    className={
+                      r === radius
+                        ? "rounded-md bg-mint/15 px-2 py-1 text-[11px] font-medium text-mint ring-1 ring-mint/30"
+                        : "rounded-md bg-ice/5 px-2 py-1 text-[11px] text-ice/60 ring-1 ring-ice/10"
+                    }
+                  >
+                    {r} km
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
 
           <div className="mt-3 flex items-center justify-between">
             <span className="text-[11px] text-ice/50">Tinklas</span>
@@ -308,11 +367,14 @@ function Index() {
           <>
             <div className="mt-5 flex items-end justify-between">
               <div>
-                <p className="text-sm font-semibold">Artimiausios degalinės</p>
+                <p className="text-sm font-semibold">
+                  {manualCity ? `Degalinės – ${city}` : "Artimiausios degalinės"}
+                </p>
                 <p className="text-[11px] text-ice/50">
                   Rikiuota pagal {FUEL_LABELS[fuel].toLowerCase()} kainą
                 </p>
               </div>
+
               <p className="text-[11px] text-mint">
                 {cheapest ? `Atnaujinta ${cheapest.updatedAt}` : ""}
               </p>
