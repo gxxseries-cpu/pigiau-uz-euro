@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
-import { brandLabel } from "@/data/stations";
+import { brandLabel, isMajorBrand, MAJOR_BRANDS } from "@/data/stations";
 import type { FuelType, Station } from "@/data/stations";
 
 
@@ -19,11 +19,14 @@ export type MarketSignal = {
 export type FuelData = {
   stations: Station[];
   brands: string[];
+  /** Dideli tinklai, kuriems rodomi atskiri filtro mygtukai. */
+  majorBrands: string[];
   cities: string[];
   latestDate: string | null;
   /** miestas -> kuro tipas -> paskutinių 180 d. vidutinės kainos */
   history: Record<string, Partial<Record<FuelType, TrendPoint[]>>>;
 };
+
 
 const FUEL_KEY: Record<string, FuelType | "markedDiesel"> = {
   diesel: "diesel",
@@ -131,11 +134,10 @@ export const getFuelData = createServerFn({ method: "GET" }).handler(
 
     const stations: Station[] = [];
     for (const s of stationRows ?? []) {
-      const label = brandLabel(s.brand);
-      if (!label) continue;
+      // Visos degalinės rodomos – ir mažų tinklų bei pavienės (pvz. „Mildos“ Skaudvilėje).
       stations.push({
         id: s.id,
-        brand: label,
+        brand: brandLabel(s.brand),
         area: s.area ?? "",
         address: s.address,
         city: s.city,
@@ -147,14 +149,21 @@ export const getFuelData = createServerFn({ method: "GET" }).handler(
       });
     }
 
+    const brandSet = new Set(stations.map((s) => s.brand));
+    const majors = MAJOR_BRANDS.filter((b) => brandSet.has(b));
+    const others = [...brandSet]
+      .filter((b) => !isMajorBrand(b))
+      .sort((a, b) => a.localeCompare(b, "lt"));
 
     return {
       stations,
-      brands: [...new Set(stations.map((s) => s.brand))].sort(),
+      brands: [...majors, ...others],
+      majorBrands: majors,
       cities: [...new Set(stations.map((s) => s.city))].sort((a, b) => a.localeCompare(b, "lt")),
       latestDate,
       history,
     };
+
 
   },
 );
