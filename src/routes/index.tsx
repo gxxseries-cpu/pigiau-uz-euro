@@ -311,24 +311,27 @@ function Index() {
             ))}
           </div>
 
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-[11px] text-ice/50">Spindulys</span>
-            <div className="flex gap-1">
-              {RADIUSES.map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setRadius(r)}
-                  className={
-                    r === radius
-                      ? "rounded-md bg-mint/15 px-2 py-1 text-[11px] font-medium text-mint ring-1 ring-mint/30"
-                      : "rounded-md bg-ice/5 px-2 py-1 text-[11px] text-ice/60 ring-1 ring-ice/10"
-                  }
-                >
-                  {r} km
-                </button>
-              ))}
+          {!manualCity && (
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-[11px] text-ice/50">Spindulys</span>
+              <div className="flex gap-1">
+                {RADIUSES.map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setRadius(r)}
+                    className={
+                      r === radius
+                        ? "rounded-md bg-mint/15 px-2 py-1 text-[11px] font-medium text-mint ring-1 ring-mint/30"
+                        : "rounded-md bg-ice/5 px-2 py-1 text-[11px] text-ice/60 ring-1 ring-ice/10"
+                    }
+                  >
+                    {r} km
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
 
           <div className="mt-3 flex items-center justify-between">
             <span className="text-[11px] text-ice/50">Tinklas</span>
