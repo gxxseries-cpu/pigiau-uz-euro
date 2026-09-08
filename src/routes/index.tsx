@@ -217,27 +217,53 @@ function Index() {
           </div>
 
           {pickingCity && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {cities.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => {
-                    setCity(c);
-                    setCoords(null);
-                    setLocationState("rankinė");
-                    setPickingCity(false);
-                  }}
-                  className={
-                    c === city
-                      ? "rounded-full bg-mint px-3 py-1.5 text-xs font-semibold text-frost"
-                      : "rounded-full bg-ice/5 px-3 py-1.5 text-xs text-ice/70 ring-1 ring-ice/10"
-                  }
-                >
-                  {c}
-                </button>
-              ))}
+            <div className="mt-3">
+              <input
+                value={cityQuery}
+                onChange={(e) => setCityQuery(e.target.value)}
+                placeholder="Ieškok miesto, miestelio ar rajono…"
+                className="w-full rounded-xl bg-ice/5 px-3 py-2 text-sm text-ice ring-1 ring-ice/10 outline-none placeholder:text-ice/40 focus:ring-mint/50"
+              />
+              {cityQuery.trim().length > 0 ? (
+                <div className="mt-2 max-h-56 space-y-1 overflow-y-auto">
+                  {matchingCities.length === 0 && (
+                    <p className="px-1 py-2 text-[11px] text-ice/50">
+                      Tokios vietovės kainų nerasta. Pabandyk kitą pavadinimą.
+                    </p>
+                  )}
+                  {matchingCities.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => selectCity(c)}
+                      className="flex w-full items-center justify-between rounded-lg bg-ice/5 px-3 py-2 text-left text-xs text-ice/80 ring-1 ring-ice/10"
+                    >
+                      <span>{c}</span>
+                      <span className="text-[10px] text-ice/40">
+                        {cityCounts[c] ?? 0} degalinių
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {quickCities.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => selectCity(c)}
+                      className={
+                        c === city
+                          ? "rounded-full bg-mint px-3 py-1.5 text-xs font-semibold text-frost"
+                          : "rounded-full bg-ice/5 px-3 py-1.5 text-xs text-ice/70 ring-1 ring-ice/10"
+                      }
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
+
 
           <div className="mt-3 flex flex-wrap gap-2">
             {FUELS.map((f) => (
