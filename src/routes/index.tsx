@@ -493,6 +493,17 @@ function Index() {
         </p>
       </div>
 
+      {openStation && (
+        <StationDetail
+          station={openStation}
+          fuel={fuel}
+          favorite={favorites.includes(openStation.id)}
+          onToggleFavorite={() => toggleFavorite(openStation.id)}
+          onClose={() => setOpenStationId(null)}
+        />
+      )}
+
+
       <nav className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-ice/10 bg-frost/70 px-6 py-3 backdrop-blur-xl">
         <div className="flex items-center justify-around">
           {TABS.map((t) => (
