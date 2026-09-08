@@ -12,7 +12,7 @@ export type FuelData = {
   brands: string[];
   cities: string[];
   latestDate: string | null;
-  /** miestas -> kuro tipas -> paskutinių 30 d. vidutinės kainos */
+  /** miestas -> kuro tipas -> paskutinių 180 d. vidutinės kainos */
   history: Record<string, Partial<Record<FuelType, TrendPoint[]>>>;
 };
 
@@ -24,32 +24,42 @@ const FUEL_KEY: Record<string, FuelType | "markedDiesel"> = {
   marked_diesel: "markedDiesel",
 };
 
+/** Istorijos gylis grafikui – iki 6 mėnesių. */
+const HISTORY_DAYS = 180;
+
 function timeLabel(iso: string) {
   const d = new Date(iso);
   return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
 }
 
+/** Viešas (publishable) klientas serverio pusėje – kainos skaitomos be prisijungimo. */
+function publicClient() {
+  const key = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_ANON_KEY"]!;
+  return createClient<Database>(process.env["SUPABASE_URL"]!, key, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    global: {
+      fetch: (input, init) => {
+        const h = new Headers(init?.headers);
+        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
+          h.delete("Authorization");
+        }
+        h.set("apikey", key);
+        return fetch(input, { ...init, headers: h });
+      },
+    },
+  });
+}
+
+function sinceDate(days: number) {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  return since.toISOString().slice(0, 10);
+}
+
 export const getFuelData = createServerFn({ method: "GET" }).handler(
   async (): Promise<FuelData> => {
-    const key = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_ANON_KEY"]!;
-    const supabase = createClient<Database>(process.env["SUPABASE_URL"]!, key, {
-      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-      global: {
-        fetch: (input, init) => {
-          const h = new Headers(init?.headers);
-          if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
-            h.delete("Authorization");
-          }
-          h.set("apikey", key);
-          return fetch(input, { ...init, headers: h });
-        },
-      },
-    });
-
-
-    const since = new Date();
-    since.setDate(since.getDate() - 30);
-    const sinceStr = since.toISOString().slice(0, 10);
+    const supabase = publicClient();
+    const sinceStr = sinceDate(HISTORY_DAYS);
 
     const [{ data: stationRows, error: sErr }, { data: priceRows, error: pErr }] =
       await Promise.all([
@@ -139,3 +149,28 @@ export const getFuelData = createServerFn({ method: "GET" }).handler(
 
   },
 );
+
+/** Vienos degalinės kainų istorija (iki 6 mėn.) grafikui detalioje kortelėje. */
+export const getStationTrend = createServerFn({ method: "GET" })
+  .inputValidator((input: { stationId: string; fuel: string }) => ({
+    stationId: String(input.stationId),
+    fuel: String(input.fuel),
+  }))
+  .handler(async ({ data }): Promise<TrendPoint[]> => {
+    const dbFuel =
+      Object.entries(FUEL_KEY).find(([, v]) => v === data.fuel)?.[0] ?? data.fuel;
+    const supabase = publicClient();
+    const { data: rows, error } = await supabase
+      .from("station_prices")
+      .select("price, price_date")
+      .eq("station_id", data.stationId)
+      .eq("fuel_type", dbFuel)
+      .gte("price_date", sinceDate(HISTORY_DAYS))
+      .order("price_date", { ascending: true });
+
+    if (error) {
+      console.error("Nepavyko gauti degalinės istorijos:", error);
+      return [];
+    }
+    return (rows ?? []).map((r) => ({ date: r.price_date, avg: Number(r.price) }));
+  });
