@@ -1,4 +1,6 @@
 import { BrandLogo } from "@/components/BrandLogo";
+import { MarketSignalBadge } from "@/components/MarketSignal";
+import type { MarketSignal } from "@/lib/fuel.functions";
 import {
   FUEL_LABELS,
   FUEL_SHORT,
