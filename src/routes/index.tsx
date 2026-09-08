@@ -367,11 +367,14 @@ function Index() {
           <>
             <div className="mt-5 flex items-end justify-between">
               <div>
-                <p className="text-sm font-semibold">Artimiausios degalinės</p>
+                <p className="text-sm font-semibold">
+                  {manualCity ? `Degalinės – ${city}` : "Artimiausios degalinės"}
+                </p>
                 <p className="text-[11px] text-ice/50">
                   Rikiuota pagal {FUEL_LABELS[fuel].toLowerCase()} kainą
                 </p>
               </div>
+
               <p className="text-[11px] text-mint">
                 {cheapest ? `Atnaujinta ${cheapest.updatedAt}` : ""}
               </p>
