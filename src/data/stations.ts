@@ -101,5 +101,7 @@ export function formatPrice(value?: number) {
 }
 
 export function formatKm(value: number) {
+  if (!Number.isFinite(value)) return "";
   return `${value.toFixed(1).replace(".", ",")} km`;
 }
+
