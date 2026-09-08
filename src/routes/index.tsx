@@ -148,16 +148,38 @@ function Index() {
 
   const origin = coords ?? CITY_CENTERS[city] ?? { lat: 54.6872, lon: 25.2797 };
 
+  /** Miestų centrai iš pačių degalinių – kad ir be tikslių koordinačių atstumas būtų apytikris. */
+  const cityFallback = useMemo(() => {
+    const acc: Record<string, { lat: number; lon: number; n: number }> = {};
+    for (const s of data.stations) {
+      if (s.lat === null || s.lon === null) continue;
+      const c = (acc[s.city] ??= { lat: 0, lon: 0, n: 0 });
+      c.lat += s.lat;
+      c.lon += s.lon;
+      c.n += 1;
+    }
+    const out: Record<string, { lat: number; lon: number }> = {};
+    for (const [cityName, v] of Object.entries(acc)) {
+      out[cityName] = { lat: v.lat / v.n, lon: v.lon / v.n };
+    }
+    return out;
+  }, [data.stations]);
+
   const withDistance = useMemo<Station[]>(
     () =>
-      data.stations.map((s) => ({
-        ...s,
-        distanceKm:
+      data.stations.map((s) => {
+        const point =
           s.lat !== null && s.lon !== null
-            ? haversineKm(origin.lat, origin.lon, s.lat, s.lon)
+            ? { lat: s.lat, lon: s.lon }
+            : (CITY_CENTERS[s.city] ?? cityFallback[s.city] ?? null);
+        return {
+          ...s,
+          distanceKm: point
+            ? haversineKm(origin.lat, origin.lon, point.lat, point.lon)
             : Infinity,
-      })),
-    [data.stations, origin.lat, origin.lon],
+        };
+      }),
+    [data.stations, origin.lat, origin.lon, cityFallback],
   );
 
   const cityStations = useMemo(
@@ -168,16 +190,24 @@ function Index() {
   /** Kai vietovė pasirinkta rankiniu būdu, spindulys netaikomas – rodoma visa vietovė. */
   const manualCity = coords === null;
 
-  const list = useMemo(
-    () =>
-      cityStations
-        .filter((s) => (manualCity ? true : s.distanceKm <= radius))
-        .filter((s) => (brand ? s.brand === brand : true))
-        .filter((s) => s.prices[fuel] !== undefined)
-        .sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0))
-        .slice(0, manualCity ? 10 : 5),
-    [cityStations, radius, brand, fuel, manualCity],
-  );
+  const list = useMemo(() => {
+    const base = (manualCity ? cityStations : withDistance)
+      .filter((s) => (brand ? s.brand === brand : true))
+      .filter((s) => s.prices[fuel] !== undefined);
+
+    if (manualCity) {
+      return base.sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0)).slice(0, 10);
+    }
+
+    const nearby = base.filter((s) => s.distanceKm <= radius);
+    /** Jei spindulyje nieko nėra – rodomos artimiausios degalinės, kad sąrašas nebūtų tuščias. */
+    const source =
+      nearby.length >= 3
+        ? nearby
+        : [...base].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 5);
+    return source.sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0)).slice(0, 5);
+  }, [cityStations, withDistance, radius, brand, fuel, manualCity]);
+
 
 
   const favoriteStations = withDistance.filter((s) => favorites.includes(s.id));
