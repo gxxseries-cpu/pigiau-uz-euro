@@ -101,7 +101,16 @@ export const getFuelData = createServerFn({ method: "GET" }).handler(
     const supabase = publicClient();
     const sinceStr = sinceDate(HISTORY_DAYS);
 
-    let stationRows: Awaited<ReturnType<typeof supabase.from>> extends never ? never : any[] = [];
+    type StationRow = {
+      id: string;
+      brand: string;
+      area: string | null;
+      address: string;
+      city: string;
+      lat: number | null;
+      lon: number | null;
+    };
+    let stationRows: StationRow[] = [];
     let priceRows: Awaited<ReturnType<typeof fetchAllPrices>> = [];
     try {
       const [stations, prices] = await Promise.all([
