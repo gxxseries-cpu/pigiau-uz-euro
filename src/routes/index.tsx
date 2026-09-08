@@ -211,8 +211,13 @@ function Index() {
   );
 
   const cityStations = useMemo(
-    () => withDistance.filter((s) => norm(s.city) === norm(city)),
-    [withDistance, city],
+    () =>
+      withDistance.filter((s) =>
+        cityKind === "area"
+          ? norm(s.area) === norm(city)
+          : norm(s.city) === norm(city) || norm(s.address).includes(norm(city)),
+      ),
+    [withDistance, city, cityKind],
   );
 
   /** Kai vietovė pasirinkta rankiniu būdu, spindulys netaikomas – rodoma visa vietovė. */
