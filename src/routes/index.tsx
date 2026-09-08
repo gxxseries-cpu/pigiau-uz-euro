@@ -14,7 +14,9 @@ import {
   FUEL_LABELS,
   formatPrice,
   haversineKm,
+  isMajorBrand,
   nearestCity,
+  norm,
   type FuelType,
   type Station,
 } from "@/data/stations";
@@ -68,6 +70,9 @@ export const Route = createFileRoute("/")({
 
 const FUELS: FuelType[] = ["diesel", "p95", "p98", "lpg"];
 const RADIUSES = [5, 10, 20, 50];
+/** Specialus filtro pasirinkimas – visos ne didžiųjų tinklų degalinės. */
+const OTHER_BRANDS = "Kiti";
+
 const TABS = [
   { id: "nearby", label: "Artimiausi", icon: "📍" },
   { id: "trend", label: "Tendencija", icon: "📈" },
@@ -83,6 +88,7 @@ function Index() {
   const cities = data.cities.length > 0 ? data.cities : Object.keys(CITY_CENTERS);
 
   const [city, setCity] = useState(() => (cities.includes("Vilnius") ? "Vilnius" : cities[0]!));
+  const [cityKind, setCityKind] = useState<"city" | "area">("city");
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [locationState, setLocationState] = useState<"tikrinama" | "nustatyta" | "rankinė">(
     "tikrinama",
@@ -100,20 +106,42 @@ function Index() {
 
   const quickCities = MAIN_CITIES.filter((c) => cities.includes(c));
 
+  /** Ieškoma pagal tikrus duomenyse esančius miestus/miestelius ir savivaldybes/rajonus. */
+  const places = useMemo(() => {
+    const counts = new Map<string, { name: string; kind: "city" | "area"; count: number }>();
+    for (const s of data.stations) {
+      for (const [name, kind] of [
+        [s.city, "city"],
+        [s.area, "area"],
+      ] as Array<[string, "city" | "area"]>) {
+        if (!name) continue;
+        const key = `${kind}:${norm(name)}`;
+        const entry = counts.get(key) ?? { name, kind, count: 0 };
+        entry.count += 1;
+        counts.set(key, entry);
+      }
+    }
+    return [...counts.values()];
+  }, [data.stations]);
+
   const cityCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const s of data.stations) counts[s.city] = (counts[s.city] ?? 0) + 1;
     return counts;
   }, [data.stations]);
 
-  const matchingCities = useMemo(() => {
-    const q = cityQuery.trim().toLowerCase();
+  const matchingPlaces = useMemo(() => {
+    const q = norm(cityQuery);
     if (!q) return [];
-    return cities.filter((c) => c.toLowerCase().includes(q)).slice(0, 30);
-  }, [cities, cityQuery]);
+    return places
+      .filter((p) => norm(p.name).includes(q))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 30);
+  }, [places, cityQuery]);
 
-  const selectCity = (c: string) => {
+  const selectCity = (c: string, kind: "city" | "area" = "city") => {
     setCity(c);
+    setCityKind(kind);
     setCoords(null);
     setLocationState("rankinė");
     setPickingCity(false);
@@ -146,17 +174,18 @@ function Index() {
     );
   }, []);
 
-  const origin = coords ?? CITY_CENTERS[city] ?? { lat: 54.6872, lon: 25.2797 };
-
   /** Miestų centrai iš pačių degalinių – kad ir be tikslių koordinačių atstumas būtų apytikris. */
   const cityFallback = useMemo(() => {
     const acc: Record<string, { lat: number; lon: number; n: number }> = {};
     for (const s of data.stations) {
       if (s.lat === null || s.lon === null) continue;
-      const c = (acc[s.city] ??= { lat: 0, lon: 0, n: 0 });
-      c.lat += s.lat;
-      c.lon += s.lon;
-      c.n += 1;
+      for (const name of [s.city, s.area]) {
+        if (!name) continue;
+        const c = (acc[name] ??= { lat: 0, lon: 0, n: 0 });
+        c.lat += s.lat;
+        c.lon += s.lon;
+        c.n += 1;
+      }
     }
     const out: Record<string, { lat: number; lon: number }> = {};
     for (const [cityName, v] of Object.entries(acc)) {
@@ -164,6 +193,10 @@ function Index() {
     }
     return out;
   }, [data.stations]);
+
+  const origin =
+    coords ?? CITY_CENTERS[city] ?? cityFallback[city] ?? { lat: 54.6872, lon: 25.2797 };
+
 
   const withDistance = useMemo<Station[]>(
     () =>
@@ -183,20 +216,38 @@ function Index() {
   );
 
   const cityStations = useMemo(
-    () => withDistance.filter((s) => s.city === city),
-    [withDistance, city],
+    () =>
+      withDistance.filter((s) =>
+        cityKind === "area"
+          ? norm(s.area) === norm(city)
+          : norm(s.city) === norm(city) || norm(s.address).includes(norm(city)),
+      ),
+    [withDistance, city, cityKind],
   );
 
   /** Kai vietovė pasirinkta rankiniu būdu, spindulys netaikomas – rodoma visa vietovė. */
   const manualCity = coords === null;
 
+  /** Tinklo atitikimas – be didžiųjų raidžių ir tarpų skirtumų; „Kiti“ = visi maži tinklai. */
+  const brandMatch = (s: Station) => {
+    if (!brand) return true;
+    if (brand === OTHER_BRANDS) return !isMajorBrand(s.brand);
+    return norm(s.brand) === norm(brand);
+  };
+
   const list = useMemo(() => {
-    const base = (manualCity ? cityStations : withDistance)
-      .filter((s) => (brand ? s.brand === brand : true))
-      .filter((s) => s.prices[fuel] !== undefined);
+    const pool = manualCity ? cityStations : withDistance;
+    const afterBrand = pool.filter(brandMatch);
+    const base = afterBrand.filter((s) => s.prices[fuel] !== undefined);
+
+    if (import.meta.env.DEV) {
+      console.debug(
+        `[filtrai] iš viso ${withDistance.length} → vietovė „${city}“ ${cityStations.length} → tinklas „${brand ?? "visi"}“ ${afterBrand.length} → su ${fuel} kaina ${base.length}`,
+      );
+    }
 
     if (manualCity) {
-      return base.sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0)).slice(0, 10);
+      return base.sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0)).slice(0, 20);
     }
 
     const nearby = base.filter((s) => s.distanceKm <= radius);
@@ -206,7 +257,8 @@ function Index() {
         ? nearby
         : [...base].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 5);
     return source.sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0)).slice(0, 5);
-  }, [cityStations, withDistance, radius, brand, fuel, manualCity]);
+  }, [cityStations, withDistance, radius, brand, fuel, manualCity, city]);
+
 
 
 
@@ -302,21 +354,22 @@ function Index() {
               />
               {cityQuery.trim().length > 0 ? (
                 <div className="mt-2 max-h-56 space-y-1 overflow-y-auto">
-                  {matchingCities.length === 0 && (
+                  {matchingPlaces.length === 0 && (
                     <p className="px-1 py-2 text-[11px] text-ice/50">
                       Tokios vietovės kainų nerasta. Pabandyk kitą pavadinimą.
                     </p>
                   )}
-                  {matchingCities.map((c) => (
+                  {matchingPlaces.map((p) => (
                     <button
-                      key={c}
-                      onClick={() => selectCity(c)}
+                      key={`${p.kind}:${p.name}`}
+                      onClick={() => selectCity(p.name, p.kind)}
                       className="flex w-full items-center justify-between rounded-lg bg-ice/5 px-3 py-2 text-left text-xs text-ice/80 ring-1 ring-ice/10"
                     >
-                      <span>{c}</span>
-                      <span className="text-[10px] text-ice/40">
-                        {cityCounts[c] ?? 0} degalinių
+                      <span>
+                        {p.name}
+                        {p.kind === "area" ? " · rajonas" : ""}
                       </span>
+                      <span className="text-[10px] text-ice/40">{p.count} degalinių</span>
                     </button>
                   ))}
                 </div>
@@ -392,7 +445,7 @@ function Index() {
               >
                 Visi
               </button>
-              {data.brands.map((b) => (
+              {[...data.majorBrands, OTHER_BRANDS].map((b) => (
                 <button
                   key={b}
                   onClick={() => setBrand(b)}
@@ -432,8 +485,10 @@ function Index() {
             <div className="mt-3 space-y-3">
               {list.length === 0 && (
                 <p className="rounded-2xl bg-ice/5 p-4 text-sm text-ice/60 ring-1 ring-ice/15">
-                  Pagal pasirinktus filtrus degalinių nerasta. Pabandyk didesnį spindulį arba kitą
-                  tinklą.
+                  {brand
+                    ? `Šiuo metu ${brand === OTHER_BRANDS ? "mažesnių tinklų" : brand} degalinių ${city} vietovėje nerasta.`
+                    : `Šiuo metu ${city} vietovėje degalinių su ${FUEL_LABELS[fuel].toLowerCase()} kaina nerasta.`}{" "}
+                  {manualCity ? "Pabandyk kitą tinklą arba kuro tipą." : "Pabandyk didesnį spindulį arba kitą tinklą."}
                 </p>
               )}
               {list.map((s, i) => (

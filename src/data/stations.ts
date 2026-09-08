@@ -17,7 +17,7 @@ export const FUEL_SHORT: Record<FuelType, string> = {
 /** Greitam pasirinkimui rodomi didieji miestai. */
 export const MAIN_CITIES = ["Vilnius", "Kaunas", "Klaipėda", "Šiauliai", "Panevėžys"];
 
-/** Rodomi tik pagrindiniai, visoje Lietuvoje paplitę degalinių tinklai. */
+/** Dideli, visoje Lietuvoje paplitę tinklai – jiems rodomi atskiri filtro mygtukai. */
 const BRAND_RULES: { match: string; label: string }[] = [
   { match: "viada", label: "Viada" },
   { match: "circle k", label: "Circle K" },
@@ -26,14 +26,38 @@ const BRAND_RULES: { match: string; label: string }[] = [
   { match: "orlen", label: "Orlen" },
 ];
 
-/** Grąžina rodomą tinklo pavadinimą arba null, jei tinklas nerodomas. */
-export function brandLabel(raw: string): string | null {
-  const lower = raw.toLowerCase();
+export const MAJOR_BRANDS = BRAND_RULES.map((r) => r.label);
+
+/** Bendras palyginimui skirtas teksto normalizavimas (be didžiųjų raidžių ir tarpų skirtumų). */
+export function norm(value: string) {
+  return value
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Rodomas tinklo pavadinimas. Dideli tinklai gauna trumpą pavadinimą,
+ * o visos kitos degalinės lieka su savo pavadinimu – nė viena neišmetama.
+ */
+export function brandLabel(raw: string): string {
+  const lower = norm(raw);
   for (const rule of BRAND_RULES) {
     if (lower.includes(rule.match)) return rule.label;
   }
-  return null;
+  return raw
+    .replace(/^(uab|ab|mb|iį|ii|vši|ka|kb|ūkis)\s+/i, "")
+    .replace(/["„“]/g, "")
+    .trim();
 }
+
+export function isMajorBrand(label: string) {
+  return MAJOR_BRANDS.includes(label);
+}
+
 
 
 export type Station = {
