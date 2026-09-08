@@ -85,7 +85,7 @@ export const getFuelData = createServerFn({ method: "GET" }).handler(
 
     if (sErr || pErr) {
       console.error("Nepavyko gauti duomenų:", sErr ?? pErr);
-      return { stations: [], brands: [], cities: [], latestDate: null, history: {} };
+      return { stations: [], brands: [], majorBrands: [], cities: [], latestDate: null, history: {} };
     }
 
     const stationsById = new Map((stationRows ?? []).map((s) => [s.id, s]));
