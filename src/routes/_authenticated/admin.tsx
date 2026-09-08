@@ -272,6 +272,52 @@ function AdminPage() {
         {status.data?.isAdmin && (
           <>
             <section className="mt-5 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
+              <p className="text-sm font-semibold">Automatinis atnaujinimas</p>
+              <p className="mt-1 text-[11px] text-ice/50">
+                Kasdien 10:30 kainos pačios nusiskaito iš nurodytos Excel arba CSV failo nuorodos –
+                rankinio įkėlimo nebereikia.
+              </p>
+
+              <p className="mt-3 text-[11px] text-ice/60">
+                Dabartinė nuoroda:{" "}
+                <span className="break-all text-ice/80">
+                  {sourceUrl ? sourceUrl : "dar nenurodyta"}
+                </span>
+              </p>
+
+              <input
+                type="url"
+                inputMode="url"
+                placeholder="https://…/degalu-kainos.xlsx"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                className="mt-3 w-full rounded-xl bg-ice/5 px-3 py-2 text-sm text-ice ring-1 ring-ice/10 outline-none placeholder:text-ice/30 focus:ring-mint/50"
+              />
+              <button
+                onClick={doSaveSource}
+                disabled={busy || url.trim().length === 0}
+                className="mt-2 w-full rounded-xl bg-ice/10 px-4 py-2.5 text-sm font-semibold text-ice ring-1 ring-ice/15 disabled:opacity-60"
+              >
+                Išsaugoti nuorodą
+              </button>
+              <button
+                onClick={doRunNow}
+                disabled={busy || !sourceUrl}
+                className="mt-2 w-full rounded-xl bg-mint px-4 py-2.5 text-sm font-semibold text-frost disabled:opacity-60"
+              >
+                {busy ? "Atnaujinama…" : "Atnaujinti dabar"}
+              </button>
+
+              {source.data?.last_run_at && (
+                <p className="mt-3 text-[11px] text-ice/50">
+                  Paskutinis atnaujinimas:{" "}
+                  {new Date(source.data.last_run_at).toLocaleString("lt-LT")} ·{" "}
+                  {source.data.last_status} · {source.data.last_message}
+                </p>
+              )}
+            </section>
+
+            <section className="mt-4 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
               <p className="text-sm font-semibold">Kainų failas (CSV)</p>
               <p className="mt-1 text-[11px] text-ice/50">
                 Stulpeliai: tinklas; adresas; miestas; rajonas; dyzelinas; b95; b98; snd; dažytas
