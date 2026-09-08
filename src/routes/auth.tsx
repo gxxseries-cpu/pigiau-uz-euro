@@ -48,11 +48,21 @@ function AuthPage() {
         setMode("login");
       }
     } catch (err) {
-      setMessage(
-        err instanceof Error && err.message.includes("Invalid login")
-          ? "Neteisingas el. paštas arba slaptažodis."
-          : "Nepavyko. Patikrink duomenis ir pabandyk dar kartą.",
-      );
+      const raw = err instanceof Error ? err.message : "";
+      let text = "Nepavyko. Patikrink duomenis ir pabandyk dar kartą.";
+      if (raw.includes("Invalid login")) {
+        text = "Neteisingas el. paštas arba slaptažodis.";
+      } else if (raw.toLowerCase().includes("weak")) {
+        text =
+          "Šis slaptažodis yra per lengvai atspėjamas (jis jau buvo viešuose duomenų nutekėjimuose). Pasirink ilgesnį, unikalų slaptažodį – bent 8 simboliai, su skaičiais ir didžiosiomis raidėmis.";
+      } else if (raw.toLowerCase().includes("already registered")) {
+        text = "Su šiuo el. paštu paskyra jau sukurta – prisijunk.";
+      } else if (raw.toLowerCase().includes("password")) {
+        text = "Slaptažodis netinka: naudok bent 6 simbolius ir unikalų slaptažodį.";
+      } else if (raw.includes("rate limit") || raw.includes("429")) {
+        text = "Per daug bandymų. Pabandyk po kelių minučių.";
+      }
+      setMessage(text);
     } finally {
       setBusy(false);
     }
