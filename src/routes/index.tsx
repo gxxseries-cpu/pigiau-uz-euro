@@ -233,9 +233,11 @@ function Index() {
     return out;
   }, [data.stations]);
 
-  const origin =
-    coords ?? CITY_CENTERS[city] ?? cityFallback[city] ?? { lat: 54.6872, lon: 25.2797 };
-
+  /**
+   * Atskaitos taškas atstumui: pirmiausia tikra naudotojo vieta.
+   * Jei jos nėra, naudojamas pasirinkto miesto centras.
+   */
+  const origin = coords ?? CITY_CENTERS[city] ?? cityFallback[city] ?? null;
 
   const withDistance = useMemo<Station[]>(
     () =>
@@ -246,12 +248,13 @@ function Index() {
             : (CITY_CENTERS[s.city] ?? cityFallback[s.city] ?? null);
         return {
           ...s,
-          distanceKm: point
-            ? haversineKm(origin.lat, origin.lon, point.lat, point.lon)
-            : Infinity,
+          distanceKm:
+            origin && point && (s.lat !== null || !coords)
+              ? haversineKm(origin.lat, origin.lon, point.lat, point.lon)
+              : Infinity,
         };
       }),
-    [data.stations, origin.lat, origin.lon, cityFallback],
+    [data.stations, origin?.lat, origin?.lon, cityFallback, coords],
   );
 
   const cityStations = useMemo(
