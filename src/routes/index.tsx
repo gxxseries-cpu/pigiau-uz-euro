@@ -700,6 +700,10 @@ function Index() {
               <span className="text-[10px] font-medium">{t.label}</span>
             </button>
           ))}
+          <Link to="/apie" className="flex flex-col items-center gap-1 text-ice/50">
+            <span className="text-lg">⚙️</span>
+            <span className="text-[10px] font-medium">Apie</span>
+          </Link>
         </div>
       </nav>
     </div>
