@@ -142,11 +142,11 @@ function Index() {
       .slice(0, 30);
   }, [places, cityQuery]);
 
+  /** Rankiniu būdu pasirinkta vietovė keičia tik sąrašą – atstumas ir toliau skaičiuojamas nuo tikros vietos. */
   const selectCity = (c: string, kind: "city" | "area" = "city") => {
     setCity(c);
     setCityKind(kind);
-    setCoords(null);
-    setLocationState("rankinė");
+    setManualPlace(true);
     setPickingCity(false);
     setCityQuery("");
   };
