@@ -11,7 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as ApieRouteImport } from './routes/apie'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as NaudojimosiSalygosRouteImport } from './routes/naudojimosi-salygos'
+import { Route as PrivatumoPolitikaRouteImport } from './routes/privatumo-politika'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicCronEnaPricesRouteImport } from './routes/api/public/cron/ena-prices'
 
@@ -24,9 +27,24 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApieRoute = ApieRouteImport.update({
+  id: '/apie',
+  path: '/apie',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NaudojimosiSalygosRoute = NaudojimosiSalygosRouteImport.update({
+  id: '/naudojimosi-salygos',
+  path: '/naudojimosi-salygos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivatumoPolitikaRoute = PrivatumoPolitikaRouteImport.update({
+  id: '/privatumo-politika',
+  path: '/privatumo-politika',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -42,13 +60,19 @@ const ApiPublicCronEnaPricesRoute = ApiPublicCronEnaPricesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/apie': typeof ApieRoute
   '/auth': typeof AuthRoute
+  '/naudojimosi-salygos': typeof NaudojimosiSalygosRoute
+  '/privatumo-politika': typeof PrivatumoPolitikaRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/api/public/cron/ena-prices': typeof ApiPublicCronEnaPricesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/apie': typeof ApieRoute
   '/auth': typeof AuthRoute
+  '/naudojimosi-salygos': typeof NaudojimosiSalygosRoute
+  '/privatumo-politika': typeof PrivatumoPolitikaRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/api/public/cron/ena-prices': typeof ApiPublicCronEnaPricesRoute
 }
@@ -56,20 +80,40 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/apie': typeof ApieRoute
   '/auth': typeof AuthRoute
+  '/naudojimosi-salygos': typeof NaudojimosiSalygosRoute
+  '/privatumo-politika': typeof PrivatumoPolitikaRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/api/public/cron/ena-prices': typeof ApiPublicCronEnaPricesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/admin' | '/api/public/cron/ena-prices'
+  fullPaths:
+    | '/'
+    | '/apie'
+    | '/auth'
+    | '/naudojimosi-salygos'
+    | '/privatumo-politika'
+    | '/admin'
+    | '/api/public/cron/ena-prices'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/admin' | '/api/public/cron/ena-prices'
+  to:
+    | '/'
+    | '/apie'
+    | '/auth'
+    | '/naudojimosi-salygos'
+    | '/privatumo-politika'
+    | '/admin'
+    | '/api/public/cron/ena-prices'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/apie'
     | '/auth'
+    | '/naudojimosi-salygos'
+    | '/privatumo-politika'
     | '/_authenticated/admin'
     | '/api/public/cron/ena-prices'
   fileRoutesById: FileRoutesById
@@ -77,7 +121,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  ApieRoute: typeof ApieRoute
   AuthRoute: typeof AuthRoute
+  NaudojimosiSalygosRoute: typeof NaudojimosiSalygosRoute
+  PrivatumoPolitikaRoute: typeof PrivatumoPolitikaRoute
   ApiPublicCronEnaPricesRoute: typeof ApiPublicCronEnaPricesRoute
 }
 
@@ -97,11 +144,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apie': {
+      id: '/apie'
+      path: '/apie'
+      fullPath: '/apie'
+      preLoaderRoute: typeof ApieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/naudojimosi-salygos': {
+      id: '/naudojimosi-salygos'
+      path: '/naudojimosi-salygos'
+      fullPath: '/naudojimosi-salygos'
+      preLoaderRoute: typeof NaudojimosiSalygosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privatumo-politika': {
+      id: '/privatumo-politika'
+      path: '/privatumo-politika'
+      fullPath: '/privatumo-politika'
+      preLoaderRoute: typeof PrivatumoPolitikaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -135,7 +203,10 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ApieRoute: ApieRoute,
   AuthRoute: AuthRoute,
+  NaudojimosiSalygosRoute: NaudojimosiSalygosRoute,
+  PrivatumoPolitikaRoute: PrivatumoPolitikaRoute,
   ApiPublicCronEnaPricesRoute: ApiPublicCronEnaPricesRoute,
 }
 export const routeTree = rootRouteImport

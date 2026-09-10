@@ -72,6 +72,8 @@ const FUELS: FuelType[] = ["diesel", "p95", "p98", "lpg"];
 const RADIUSES = [5, 10, 20, 50];
 /** Specialus filtro pasirinkimas – visos ne didžiųjų tinklų degalinės. */
 const OTHER_BRANDS = "Kiti";
+/** Ar naudotojui jau parodėme, kodėl prašome lokacijos. */
+const LOC_ASK_KEY = "degalai-loc-paaiskinta";
 
 const TABS = [
   { id: "nearby", label: "Artimiausi", icon: "📍" },
@@ -94,6 +96,7 @@ function Index() {
     "tikrinama",
   );
   const [pickingCity, setPickingCity] = useState(false);
+  const [locationAsk, setLocationAsk] = useState(false);
   const [cityQuery, setCityQuery] = useState("");
   const [fuel, setFuel] = useState<FuelType>("diesel");
   const [radius, setRadius] = useState(10);
@@ -154,7 +157,10 @@ function Index() {
     if (stored) setFavorites(JSON.parse(stored) as string[]);
   }, []);
 
-  useEffect(() => {
+  /** Lokacijos leidimo prašome tik paaiškinę, kodėl jis reikalingas. */
+  const requestLocation = () => {
+    setLocationAsk(false);
+    localStorage.setItem(LOC_ASK_KEY, "1");
     if (!navigator.geolocation) {
       setLocationState("rankinė");
       setPickingCity(true);
@@ -172,6 +178,38 @@ function Index() {
       },
       { timeout: 8000 },
     );
+  };
+
+  const declineLocation = () => {
+    setLocationAsk(false);
+    localStorage.setItem(LOC_ASK_KEY, "1");
+    setLocationState("rankinė");
+    setPickingCity(true);
+  };
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationState("rankinė");
+      setPickingCity(true);
+      return;
+    }
+    /** Jau kartą paaiškinta – leidimo galima prašyti iškart (sistema pati daugiau neklaus). */
+    if (localStorage.getItem(LOC_ASK_KEY) === "1") {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+          setCity(nearestCity(pos.coords.latitude, pos.coords.longitude));
+          setLocationState("nustatyta");
+        },
+        () => {
+          setLocationState("rankinė");
+          setPickingCity(true);
+        },
+        { timeout: 8000 },
+      );
+      return;
+    }
+    setLocationAsk(true);
   }, []);
 
   /** Miestų centrai iš pačių degalinių – kad ir be tikslių koordinačių atstumas būtų apytikris. */
@@ -591,12 +629,51 @@ function Index() {
         )}
 
         <p className="mt-6 text-center text-[11px] text-ice/40">
-          Kainų šaltinis – Lietuvos energetikos agentūra.{" "}
-          <Link to="/admin" className="text-ice/60 underline">
+          Kainų šaltinis – Lietuvos energetikos agentūra. Kainos orientacinės.
+        </p>
+        <p className="mt-2 flex flex-wrap justify-center gap-3 text-[11px] text-ice/60">
+          <Link to="/apie" className="underline">
+            Apie programą
+          </Link>
+          <Link to="/privatumo-politika" className="underline">
+            Privatumo politika
+          </Link>
+          <Link to="/naudojimosi-salygos" className="underline">
+            Naudojimosi sąlygos
+          </Link>
+          <Link to="/admin" className="underline">
             Kainų pildymas
           </Link>
         </p>
       </div>
+
+      {locationAsk && (
+        <div className="fixed inset-0 z-50 grid place-items-end bg-frost/70 p-4 backdrop-blur-sm">
+          <div className="mx-auto w-full max-w-md rounded-2xl bg-frost-2 p-5 ring-1 ring-ice/15">
+            <p className="text-sm font-semibold">Leisti nustatyti tavo vietą?</p>
+            <p className="mt-2 text-[13px] leading-relaxed text-ice/70">
+              Norime nustatyti tavo miestą, kad parodytume artimiausias degalines ir atstumus.
+              Leidimas naudojamas tik šiam tikslui – koordinatės nesaugomos serveryje. Nesutikus
+              galėsi pasirinkti miestą rankiniu būdu.
+            </p>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={requestLocation}
+                className="flex-1 rounded-xl bg-mint py-2.5 text-sm font-semibold text-frost"
+              >
+                Leisti
+              </button>
+              <button
+                onClick={declineLocation}
+                className="rounded-xl bg-ice/5 px-4 text-sm text-ice/70 ring-1 ring-ice/10"
+              >
+                Rinktis miestą
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {openStation && (
         <StationDetail
@@ -623,6 +700,10 @@ function Index() {
               <span className="text-[10px] font-medium">{t.label}</span>
             </button>
           ))}
+          <Link to="/apie" className="flex flex-col items-center gap-1 text-ice/50">
+            <span className="text-lg">⚙️</span>
+            <span className="text-[10px] font-medium">Apie</span>
+          </Link>
         </div>
       </nav>
     </div>
