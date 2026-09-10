@@ -1,0 +1,23 @@
+{
+  "name": "Pigiausi Degalai – degalų kainos Lietuvoje",
+  "short_name": "Pigiausi Degalai",
+  "description": "Degalų kainos Lietuvoje pagal viešus ena.lt duomenis – rask pigiausią degalinę netoliese.",
+  "lang": "lt",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1120",
+  "theme_color": "#0b1120",
+  "categories": ["travel", "utilities", "navigation"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Artimiausios degalinės", "url": "/" },
+    { "name": "Apie programą", "url": "/apie" }
+  ]
+}
