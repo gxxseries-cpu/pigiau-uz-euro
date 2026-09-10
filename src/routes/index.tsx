@@ -249,7 +249,7 @@ function Index() {
         return {
           ...s,
           distanceKm:
-            origin && point && (s.lat !== null || !coords)
+            origin && point
               ? haversineKm(origin.lat, origin.lon, point.lat, point.lon)
               : Infinity,
         };
