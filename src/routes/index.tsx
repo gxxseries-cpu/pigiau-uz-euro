@@ -154,7 +154,10 @@ function Index() {
     if (stored) setFavorites(JSON.parse(stored) as string[]);
   }, []);
 
-  useEffect(() => {
+  /** Lokacijos leidimo prašome tik paaiškinę, kodėl jis reikalingas. */
+  const requestLocation = () => {
+    setLocationAsk(false);
+    localStorage.setItem(LOC_ASK_KEY, "1");
     if (!navigator.geolocation) {
       setLocationState("rankinė");
       setPickingCity(true);
@@ -172,6 +175,38 @@ function Index() {
       },
       { timeout: 8000 },
     );
+  };
+
+  const declineLocation = () => {
+    setLocationAsk(false);
+    localStorage.setItem(LOC_ASK_KEY, "1");
+    setLocationState("rankinė");
+    setPickingCity(true);
+  };
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationState("rankinė");
+      setPickingCity(true);
+      return;
+    }
+    /** Jau kartą paaiškinta – leidimo galima prašyti iškart (sistema pati daugiau neklaus). */
+    if (localStorage.getItem(LOC_ASK_KEY) === "1") {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+          setCity(nearestCity(pos.coords.latitude, pos.coords.longitude));
+          setLocationState("nustatyta");
+        },
+        () => {
+          setLocationState("rankinė");
+          setPickingCity(true);
+        },
+        { timeout: 8000 },
+      );
+      return;
+    }
+    setLocationAsk(true);
   }, []);
 
   /** Miestų centrai iš pačių degalinių – kad ir be tikslių koordinačių atstumas būtų apytikris. */

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as ApieRouteImport } from './routes/apie'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as NaudojimosiSalygosRouteImport } from './routes/naudojimosi-salygos'
 import { Route as PrivatumoPolitikaRouteImport } from './routes/privatumo-politika'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApieRoute = ApieRouteImport.update({
+  id: '/apie',
+  path: '/apie',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -54,6 +60,7 @@ const ApiPublicCronEnaPricesRoute = ApiPublicCronEnaPricesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/apie': typeof ApieRoute
   '/auth': typeof AuthRoute
   '/naudojimosi-salygos': typeof NaudojimosiSalygosRoute
   '/privatumo-politika': typeof PrivatumoPolitikaRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/apie': typeof ApieRoute
   '/auth': typeof AuthRoute
   '/naudojimosi-salygos': typeof NaudojimosiSalygosRoute
   '/privatumo-politika': typeof PrivatumoPolitikaRoute
@@ -72,6 +80,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/apie': typeof ApieRoute
   '/auth': typeof AuthRoute
   '/naudojimosi-salygos': typeof NaudojimosiSalygosRoute
   '/privatumo-politika': typeof PrivatumoPolitikaRoute
@@ -82,6 +91,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/apie'
     | '/auth'
     | '/naudojimosi-salygos'
     | '/privatumo-politika'
@@ -90,6 +100,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/apie'
     | '/auth'
     | '/naudojimosi-salygos'
     | '/privatumo-politika'
@@ -99,6 +110,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/apie'
     | '/auth'
     | '/naudojimosi-salygos'
     | '/privatumo-politika'
@@ -109,6 +121,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  ApieRoute: typeof ApieRoute
   AuthRoute: typeof AuthRoute
   NaudojimosiSalygosRoute: typeof NaudojimosiSalygosRoute
   PrivatumoPolitikaRoute: typeof PrivatumoPolitikaRoute
@@ -129,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apie': {
+      id: '/apie'
+      path: '/apie'
+      fullPath: '/apie'
+      preLoaderRoute: typeof ApieRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -183,6 +203,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ApieRoute: ApieRoute,
   AuthRoute: AuthRoute,
   NaudojimosiSalygosRoute: NaudojimosiSalygosRoute,
   PrivatumoPolitikaRoute: PrivatumoPolitikaRoute,
