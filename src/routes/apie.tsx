@@ -57,6 +57,8 @@ function AboutPage() {
           </p>
         </section>
 
+        <InstallSection />
+
         <section className="mt-4 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
           <p className="text-sm font-semibold">Dokumentai</p>
           <div className="mt-3 space-y-2">
