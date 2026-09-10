@@ -96,6 +96,7 @@ function Index() {
     "tikrinama",
   );
   const [pickingCity, setPickingCity] = useState(false);
+  const [manualPlace, setManualPlace] = useState(false);
   const [locationAsk, setLocationAsk] = useState(false);
   const [cityQuery, setCityQuery] = useState("");
   const [fuel, setFuel] = useState<FuelType>("diesel");
@@ -142,11 +143,11 @@ function Index() {
       .slice(0, 30);
   }, [places, cityQuery]);
 
+  /** Rankiniu būdu pasirinkta vietovė keičia tik sąrašą – atstumas ir toliau skaičiuojamas nuo tikros vietos. */
   const selectCity = (c: string, kind: "city" | "area" = "city") => {
     setCity(c);
     setCityKind(kind);
-    setCoords(null);
-    setLocationState("rankinė");
+    setManualPlace(true);
     setPickingCity(false);
     setCityQuery("");
   };
@@ -232,9 +233,11 @@ function Index() {
     return out;
   }, [data.stations]);
 
-  const origin =
-    coords ?? CITY_CENTERS[city] ?? cityFallback[city] ?? { lat: 54.6872, lon: 25.2797 };
-
+  /**
+   * Atskaitos taškas atstumui: pirmiausia tikra naudotojo vieta.
+   * Jei jos nėra, naudojamas pasirinkto miesto centras.
+   */
+  const origin = coords ?? CITY_CENTERS[city] ?? cityFallback[city] ?? null;
 
   const withDistance = useMemo<Station[]>(
     () =>
@@ -245,12 +248,13 @@ function Index() {
             : (CITY_CENTERS[s.city] ?? cityFallback[s.city] ?? null);
         return {
           ...s,
-          distanceKm: point
-            ? haversineKm(origin.lat, origin.lon, point.lat, point.lon)
-            : Infinity,
+          distanceKm:
+            origin && point
+              ? haversineKm(origin.lat, origin.lon, point.lat, point.lon)
+              : Infinity,
         };
       }),
-    [data.stations, origin.lat, origin.lon, cityFallback],
+    [data.stations, origin?.lat, origin?.lon, cityFallback, coords],
   );
 
   const cityStations = useMemo(
@@ -264,7 +268,7 @@ function Index() {
   );
 
   /** Kai vietovė pasirinkta rankiniu būdu, spindulys netaikomas – rodoma visa vietovė. */
-  const manualCity = coords === null;
+  const manualCity = manualPlace || coords === null;
 
   /** Tinklo atitikimas – be didžiųjų raidžių ir tarpų skirtumų; „Kiti“ = visi maži tinklai. */
   const brandMatch = (s: Station) => {
