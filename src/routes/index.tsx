@@ -72,6 +72,8 @@ const FUELS: FuelType[] = ["diesel", "p95", "p98", "lpg"];
 const RADIUSES = [5, 10, 20, 50];
 /** Specialus filtro pasirinkimas – visos ne didžiųjų tinklų degalinės. */
 const OTHER_BRANDS = "Kiti";
+/** Ar naudotojui jau parodėme, kodėl prašome lokacijos. */
+const LOC_ASK_KEY = "degalai-loc-paaiskinta";
 
 const TABS = [
   { id: "nearby", label: "Artimiausi", icon: "📍" },
@@ -94,6 +96,7 @@ function Index() {
     "tikrinama",
   );
   const [pickingCity, setPickingCity] = useState(false);
+  const [locationAsk, setLocationAsk] = useState(false);
   const [cityQuery, setCityQuery] = useState("");
   const [fuel, setFuel] = useState<FuelType>("diesel");
   const [radius, setRadius] = useState(10);
