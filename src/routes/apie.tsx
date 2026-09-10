@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+import { InstallSection } from "@/components/InstallSection";
 import { PermissionsPanel } from "@/components/PermissionsPanel";
 import { APP_NAME, APP_VERSION, CONTACT_EMAIL, LEGAL_UPDATED } from "@/data/legal";
 
