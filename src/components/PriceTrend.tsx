@@ -205,8 +205,15 @@ export function PriceTrend({
         {formatPrice(hoverPoint?.avg ?? last)}
       </p>
       <p className="text-[11px] text-ice/50">
-        {hoverPoint ? fmtDate(hoverPoint.date) : `${fmtDate(points[Math.floor(view[0])]!.date)} – ${fmtDate(points[Math.round(view[1])]!.date)}`}
+        {hoverPoint
+          ? fmtDate(hoverPoint.date)
+          : (() => {
+              const a = points[Math.max(0, Math.min(n - 1, Math.floor(view[0])))];
+              const b = points[Math.max(0, Math.min(n - 1, Math.round(view[1])))];
+              return a && b ? `${fmtDate(a.date)} – ${fmtDate(b.date)}` : "";
+            })()}
       </p>
+
 
       <svg
         ref={svgRef}
