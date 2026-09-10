@@ -96,6 +96,7 @@ function Index() {
     "tikrinama",
   );
   const [pickingCity, setPickingCity] = useState(false);
+  const [manualPlace, setManualPlace] = useState(false);
   const [locationAsk, setLocationAsk] = useState(false);
   const [cityQuery, setCityQuery] = useState("");
   const [fuel, setFuel] = useState<FuelType>("diesel");
