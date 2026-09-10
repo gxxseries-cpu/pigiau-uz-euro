@@ -34,6 +34,8 @@ export function PriceTrend({
     null,
   );
   const pinch = useRef<{ dist: number; view: [number, number] } | null>(null);
+  const brushRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     // Numatytasis rodinys – paskutinės 30 dienų.
@@ -147,8 +149,8 @@ export function PriceTrend({
   };
 
   // ---- Slankiklis (brush) ----
-  const brushRef = useRef<HTMLDivElement>(null);
   const brushRatio = (clientX: number) => {
+
     const rect = brushRef.current?.getBoundingClientRect();
     if (!rect) return 0;
     return Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
