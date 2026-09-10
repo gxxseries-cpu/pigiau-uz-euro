@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+import { InstallSection } from "@/components/InstallSection";
 import { PermissionsPanel } from "@/components/PermissionsPanel";
 import { APP_NAME, APP_VERSION, CONTACT_EMAIL, LEGAL_UPDATED } from "@/data/legal";
 
@@ -55,6 +56,8 @@ function AboutPage() {
             pasižiūrėti kainų tendenciją. Registracija nereikalinga.
           </p>
         </section>
+
+        <InstallSection />
 
         <section className="mt-4 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
           <p className="text-sm font-semibold">Dokumentai</p>
