@@ -268,7 +268,7 @@ function Index() {
   );
 
   /** Kai vietovė pasirinkta rankiniu būdu, spindulys netaikomas – rodoma visa vietovė. */
-  const manualCity = coords === null;
+  const manualCity = manualPlace || coords === null;
 
   /** Tinklo atitikimas – be didžiųjų raidžių ir tarpų skirtumų; „Kiti“ = visi maži tinklai. */
   const brandMatch = (s: Station) => {
