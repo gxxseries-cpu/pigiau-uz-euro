@@ -276,8 +276,9 @@ export async function runDailyImport() {
     if (counts.prices > 0) {
       return finish(
         "sėkmė",
-        `Atnaujinta iš ENA: ${counts.prices} kainų (${counts.stations} degalinių).`,
+        `Atnaujinta iš ENA: ${counts.prices} kainų (${counts.stations} degalinių), data ${date}.`,
         counts,
+        date,
       );
     }
   } catch (err) {
