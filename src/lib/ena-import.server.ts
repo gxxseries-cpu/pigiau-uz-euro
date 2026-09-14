@@ -301,6 +301,7 @@ export async function runDailyImport() {
       "sėkmė",
       `Atnaujinta iš failo: ${counts.prices} kainų (${counts.stations} degalinių).`,
       counts,
+      date,
     );
   } catch (err) {
     return finish("klaida", err instanceof Error ? err.message : "Nežinoma klaida.");
