@@ -190,9 +190,17 @@ const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 export async function fetchEnaPowerBiRows(): Promise<{ rows: Row[]; date: string }> {
   // ENA ataskaitos datos laukas yra UTC vidurnaktis; Vilniaus laiku 10:30 tai dar ta pati diena.
   const now = new Date();
-  const candidates = [0, -1, -2].map((offset) => new Date(now.getTime() + offset * MILLISECONDS_PER_DAY));
+  const candidates = [0, -1, -2, -3, -4, -5, -6, -7].map(
+    (offset) => new Date(now.getTime() + offset * MILLISECONDS_PER_DAY),
+  );
   for (const date of candidates) {
-    const raw = await fetchRowsForDate(date);
+    let raw: unknown[][] = [];
+    try {
+      raw = await fetchRowsForDate(date);
+    } catch (err) {
+      console.error("ENA ataskaitos užklausos klaida:", err);
+      continue;
+    }
     if (raw.length === 0) continue;
     const dateKey = date.toISOString().slice(0, 10);
     const rows: Row[] = [];
