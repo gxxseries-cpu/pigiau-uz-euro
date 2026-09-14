@@ -217,10 +217,21 @@ export async function runDailyImport() {
     .maybeSingle();
 
   const url = settings?.source_url?.trim();
+
+  // Naujausia jau turima kainų data – pagal ją sprendžiame, ar tikrai atsirado naujų kainų.
+  const { data: newest } = await supabaseAdmin
+    .from("station_prices")
+    .select("price_date")
+    .order("price_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const previousDate = newest?.price_date ?? null;
+
   const finish = async (
     status: string,
     message: string,
     counts = { stations: 0, prices: 0 },
+    importedDate: string | null = null,
   ) => {
     await supabaseAdmin
       .from("import_source")
@@ -242,8 +253,9 @@ export async function runDailyImport() {
       console.error("Rinkos indikatoriaus klaida:", err);
     }
 
-    // Kainos atsinaujino – išsiunčiame pranešimus prenumeratoriams.
-    if (status === "sėkmė" && counts.prices > 0) {
+    // Pranešimus siunčiame tik tada, kai atsirado naujesnės dienos kainos (ne kartojant tą pačią dieną).
+    const isNewDay = importedDate !== null && (previousDate === null || importedDate > previousDate);
+    if (status === "sėkmė" && counts.prices > 0 && isNewDay) {
       try {
         const { sendPriceUpdateNotifications } = await import("./push.server");
         const push = await sendPriceUpdateNotifications();
@@ -264,8 +276,9 @@ export async function runDailyImport() {
     if (counts.prices > 0) {
       return finish(
         "sėkmė",
-        `Atnaujinta iš ENA: ${counts.prices} kainų (${counts.stations} degalinių).`,
+        `Atnaujinta iš ENA: ${counts.prices} kainų (${counts.stations} degalinių), data ${date}.`,
         counts,
+        date,
       );
     }
   } catch (err) {
@@ -288,6 +301,7 @@ export async function runDailyImport() {
       "sėkmė",
       `Atnaujinta iš failo: ${counts.prices} kainų (${counts.stations} degalinių).`,
       counts,
+      date,
     );
   } catch (err) {
     return finish("klaida", err instanceof Error ? err.message : "Nežinoma klaida.");
