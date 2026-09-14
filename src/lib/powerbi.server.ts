@@ -141,25 +141,41 @@ function dateWhere(date: Date) {
   ];
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Viena Power BI užklausa su keliais pakartojimais (ataskaita kartais laikinai neatsako). */
+async function queryPage(where: unknown[], start: number): Promise<any> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await sleep(1500 * attempt);
+    try {
+      const res = await fetch(QUERYDATA_URL, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json;charset=UTF-8",
+          "x-powerbi-resourcekey": RESOURCE_KEY,
+          requestid: crypto.randomUUID(),
+          activityid: crypto.randomUUID(),
+          origin: "https://app.powerbi.com",
+          referer: "https://app.powerbi.com/",
+        },
+        body: JSON.stringify(buildBody(where, start, PAGE_SIZE)),
+      });
+      if (!res.ok) throw new Error(`Power BI užklausa grąžino ${res.status}.`);
+      return await res.json();
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("Power BI užklausa nepavyko.");
+}
+
 /** Nuskaito kainas už datą (su puslapiavimu). */
 async function fetchRowsForDate(date: Date): Promise<unknown[][]> {
   const where = dateWhere(date);
   const all: unknown[][] = [];
   for (let start = 0; start < 100000; start += PAGE_SIZE) {
-    const res = await fetch(QUERYDATA_URL, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json;charset=UTF-8",
-        "x-powerbi-resourcekey": RESOURCE_KEY,
-        requestid: crypto.randomUUID(),
-        activityid: crypto.randomUUID(),
-        origin: "https://app.powerbi.com",
-        referer: "https://app.powerbi.com/",
-      },
-      body: JSON.stringify(buildBody(where, start, PAGE_SIZE)),
-    });
-    if (!res.ok) throw new Error(`Power BI užklausa grąžino ${res.status}.`);
-    const json = await res.json();
+    const json = await queryPage(where, start);
     const data = json?.results?.[0]?.result?.data;
     const page = data?.dsr?.DS?.[0]?.PH?.[0]?.DM0 ?? [];
     all.push(...decodeDsr(data));
