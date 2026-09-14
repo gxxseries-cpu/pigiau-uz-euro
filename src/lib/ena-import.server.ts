@@ -253,8 +253,9 @@ export async function runDailyImport() {
       console.error("Rinkos indikatoriaus klaida:", err);
     }
 
-    // Kainos atsinaujino – išsiunčiame pranešimus prenumeratoriams.
-    if (status === "sėkmė" && counts.prices > 0) {
+    // Pranešimus siunčiame tik tada, kai atsirado naujesnės dienos kainos (ne kartojant tą pačią dieną).
+    const isNewDay = importedDate !== null && (previousDate === null || importedDate > previousDate);
+    if (status === "sėkmė" && counts.prices > 0 && isNewDay) {
       try {
         const { sendPriceUpdateNotifications } = await import("./push.server");
         const push = await sendPriceUpdateNotifications();
