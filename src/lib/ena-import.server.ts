@@ -217,10 +217,21 @@ export async function runDailyImport() {
     .maybeSingle();
 
   const url = settings?.source_url?.trim();
+
+  // Naujausia jau turima kainų data – pagal ją sprendžiame, ar tikrai atsirado naujų kainų.
+  const { data: newest } = await supabaseAdmin
+    .from("station_prices")
+    .select("price_date")
+    .order("price_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const previousDate = newest?.price_date ?? null;
+
   const finish = async (
     status: string,
     message: string,
     counts = { stations: 0, prices: 0 },
+    importedDate: string | null = null,
   ) => {
     await supabaseAdmin
       .from("import_source")
