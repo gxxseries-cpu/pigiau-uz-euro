@@ -383,18 +383,30 @@ function Index() {
               <p className="text-[11px] text-ice/50">
                 {locationState === "tikrinama"
                   ? "Nustatoma lokacija…"
-                  : locationState === "nustatyta"
-                    ? "Lokacija nustatyta"
+                  : locationState === "nustatyta" && !manualPlace
+                    ? "Pagal tavo lokaciją"
                     : "Miestas pasirinktas rankiniu būdu"}{" "}
                 · {cityStations.length} degalinių
               </p>
             </div>
-            <button
-              onClick={() => setPickingCity((v) => !v)}
-              className="rounded-lg bg-ice/5 px-2.5 py-1.5 text-[11px] text-ice/70 ring-1 ring-ice/10"
-            >
-              Keisti
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setPickingCity((v) => !v)}
+                className="rounded-lg bg-ice/5 px-2.5 py-1.5 text-[11px] text-ice/70 ring-1 ring-ice/10"
+              >
+                Keisti
+              </button>
+              <button
+                onClick={useMyLocation}
+                className={
+                  !manualPlace && locationState === "nustatyta"
+                    ? "rounded-lg bg-mint/15 px-2.5 py-1.5 text-[11px] font-medium text-mint ring-1 ring-mint/30"
+                    : "rounded-lg bg-ice/5 px-2.5 py-1.5 text-[11px] text-ice/70 ring-1 ring-ice/10"
+                }
+              >
+                Mano lokacija
+              </button>
+            </div>
           </div>
 
           {pickingCity && (
