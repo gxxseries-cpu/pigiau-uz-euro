@@ -152,6 +152,17 @@ function Index() {
     setCityQuery("");
   };
 
+  /** Grįžimas prie geolokacijos režimo – jei koordinačių dar nėra, prašome leidimo dar kartą. */
+  const useMyLocation = () => {
+    if (coords) {
+      setManualPlace(false);
+      setCity(nearestCity(coords.lat, coords.lon));
+      setCityKind("city");
+      return;
+    }
+    requestLocation();
+  };
+
 
   useEffect(() => {
     const stored = localStorage.getItem("degalai-favorites");
