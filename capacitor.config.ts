@@ -17,10 +17,29 @@ const config: CapacitorConfig = {
   },
   android: {
     backgroundColor: "#0b1120",
+    // Slepiame naršyklės pojūtį: jokio zoom, jokio teksto perdidinimo.
+    allowMixedContent: false,
+    webContentsDebuggingEnabled: false,
   },
   ios: {
     backgroundColor: "#0b1120",
     contentInset: "always",
+  },
+  plugins: {
+    SplashScreen: {
+      backgroundColor: "#0b1120",
+      launchAutoHide: true,
+      launchShowDuration: 900,
+      androidScaleType: "CENTER_CROP",
+      showSpinner: false,
+    },
+    StatusBar: {
+      style: "DARK",
+      backgroundColor: "#0b1120",
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
+    },
   },
 };
 
