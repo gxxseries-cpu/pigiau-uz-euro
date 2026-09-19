@@ -151,3 +151,19 @@
     color: var(--color-foreground);
   }
 }
+
+/* Native programėlėje (Capacitor) elgiamės kaip programa, ne kaip naršyklė:
+   be teksto žymėjimo, be „atsitrenkimo“ efekto, be mėlyno paspaudimo blyksnio. */
+html.native-app,
+html.native-app body {
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.native-app input,
+html.native-app textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
