@@ -58,3 +58,34 @@ npx @capacitor/assets generate --iconBackgroundColor "#0b1120" --splashBackgroun
 Projektą galima susieti su GitHub per Lovable: mygtukas **GitHub → Connect project**.
 Po to kodas automatiškai sinchronizuojamas abiem kryptimis, ir šias komandas gali
 paleisti savo kompiuteryje.
+
+## 6. Tikri pranešimai (Firebase Cloud Messaging)
+
+Serverio pusė jau sukonfigūruota (Firebase jungtis projekte). Kad Android
+programėlė gautų tikrus pranešimus su garsu (ne „silent“), reikia vieno failo iš
+Firebase konsolės:
+
+1. https://console.firebase.google.com → projektas `kuraspigiau`.
+2. Project settings → Your apps → Add app → Android.
+3. „Android package name“ įrašyk **lt.pigiausidegalai.app**, sukurk programą.
+4. Parsisiųsk `google-services.json` ir įkelk į `android/app/google-services.json`.
+5. Terminale projekto šaknyje:
+
+```sh
+npx cap sync
+npx cap open android
+```
+
+6. Android Studio: Build → Generate Signed App Bundle / APK → APK → `release`.
+   Įdiek naują APK į telefoną (senąjį galima tiesiog užrašyti ant viršaus).
+
+Programėlėje pirmą kartą paspaudus pranešimų įjungimą, telefonas paprašys
+leidimo, o įrenginio raktas įrašomas į `push_subscribers` lentelę. Kasdienis
+kainų atnaujinimas išsiunčia pranešimą tik tada, kai atsiranda naujos dienos
+kainos.
+
+## 7. iOS pranešimai
+
+Reikia Mac + Xcode ir Apple Developer paskyros: Firebase konsolėje pridėk iOS
+programą, parsisiųsk `GoogleService-Info.plist` į `ios/App/App/`, Xcode
+įjunk „Push Notifications“ ir „Background Modes → Remote notifications“.

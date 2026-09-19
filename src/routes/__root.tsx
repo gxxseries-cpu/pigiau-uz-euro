@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { initNativeShell } from "../lib/native";
 
 function NotFoundComponent() {
   return (
@@ -140,6 +141,11 @@ function RootComponent() {
   useEffect(() => {
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
     navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+  }, []);
+
+  /** Native programėlės apdaila (būsenos juosta, paleidimo ekranas). */
+  useEffect(() => {
+    void initNativeShell();
   }, []);
 
   return (
