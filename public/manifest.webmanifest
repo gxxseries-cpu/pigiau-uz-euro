@@ -4,6 +4,7 @@
   "description": "Degalų kainos Lietuvoje pagal viešus ena.lt duomenis – rask pigiausią degalinę netoliese.",
   "lang": "lt",
   "dir": "ltr",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
