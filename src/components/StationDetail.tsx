@@ -12,7 +12,8 @@ import {
 } from "@/data/stations";
 import { getStationTrend } from "@/lib/fuel.functions";
 
-const FUELS: FuelType[] = ["diesel", "p95", "p98", "lpg"];
+// ENA neskelbia 98 kainų — nerodome (laukas kodėje paliktas)
+const FUELS: FuelType[] = ["diesel", "p95", "lpg"];
 
 export function StationDetail({
   station,

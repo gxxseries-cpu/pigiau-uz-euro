@@ -68,7 +68,8 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const FUELS: FuelType[] = ["diesel", "p95", "p98", "lpg"];
+// ENA neskelbia 98 kainų — nerodome (laukas kodėje paliktas)
+const FUELS: FuelType[] = ["diesel", "p95", "lpg"];
 const RADIUSES = [5, 10, 20, 50];
 /** Specialus filtro pasirinkimas – visos ne didžiųjų tinklų degalinės. */
 const OTHER_BRANDS = "Kiti";

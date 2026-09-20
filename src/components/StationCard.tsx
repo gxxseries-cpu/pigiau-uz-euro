@@ -20,7 +20,8 @@ type Props = {
   signal?: MarketSignal | null;
 };
 
-const SECONDARY: FuelType[] = ["p95", "p98", "diesel", "lpg"];
+// ENA neskelbia 98 kainų — nerodome (laukas kodėje paliktas)
+const SECONDARY: FuelType[] = ["p95", "diesel", "lpg"];
 
 export function StationCard({
   station,
