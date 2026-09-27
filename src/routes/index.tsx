@@ -21,6 +21,7 @@ import {
   type Station,
 } from "@/data/stations";
 import { getFuelData, getMarketSignal } from "@/lib/fuel.functions";
+import { hideBanner, showBanner, trackAdAction } from "@/lib/ads";
 
 const TITLE = "Pigiausi Degalai – degalų kainos Lietuvoje";
 const DESC =
@@ -151,7 +152,23 @@ function Index() {
     setManualPlace(true);
     setPickingCity(false);
     setCityQuery("");
+    void trackAdAction();
   };
+
+  /** Reklamos juosta rodoma tik artimiausių degalinių sąraše (tik native programėlėje). */
+  const [bannerOn, setBannerOn] = useState(false);
+  useEffect(() => {
+    if (tab !== "nearby") {
+      void hideBanner();
+      setBannerOn(false);
+      return;
+    }
+    let alive = true;
+    void showBanner().then((ok) => alive && setBannerOn(ok));
+    return () => {
+      alive = false;
+    };
+  }, [tab]);
 
   /** Grįžimas prie geolokacijos režimo – jei koordinačių dar nėra, prašome leidimo dar kartą. */
   const useMyLocation = () => {
@@ -353,7 +370,7 @@ function Index() {
       <div className="pointer-events-none absolute -right-20 top-1/3 h-[420px] w-[420px] rounded-full bg-sky-400/20 blur-[120px]" />
       <div className="pointer-events-none absolute bottom-[-10%] left-1/3 h-[360px] w-[360px] rounded-full bg-indigo-400/20 blur-[120px]" />
 
-      <div className="relative mx-auto max-w-md px-4 pb-28 pt-6">
+      <div className={`relative mx-auto max-w-md px-4 pt-6 ${bannerOn ? "pb-48" : "pb-28"}`}>
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="grid h-9 w-9 place-items-center rounded-xl bg-mint/15 text-mint ring-1 ring-mint/30">
@@ -719,7 +736,10 @@ function Index() {
           {TABS.map((t) => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => {
+                if (t.id === "trend" && tab !== "trend") void trackAdAction();
+                setTab(t.id);
+              }}
               className={`flex flex-col items-center gap-1 ${
                 tab === t.id ? "text-mint" : "text-ice/50"
               }`}

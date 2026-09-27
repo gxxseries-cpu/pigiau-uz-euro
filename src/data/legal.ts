@@ -64,8 +64,16 @@ export const PRIVACY_POLICY: LegalDoc = {
     {
       title: "5. Duomenų perdavimas",
       paragraphs: [
-        "Duomenų neparduodame ir neperduodame trečiosioms šalims reklamos ar rinkodaros tikslais.",
-        "Naudojame tik technines paslaugas, būtinas programėlės veikimui: duomenų bazę ir serverio talpinimą bei pranešimų siuntimo paslaugą. Šie paslaugų teikėjai duomenis apdoroja tik mūsų nurodymu.",
+        "Duomenų neparduodame. Išskyrus reklamos paslaugą (žr. kitą skyrių), duomenų trečiosioms šalims rinkodaros tikslais neperduodame.",
+        "Naudojame technines paslaugas, būtinas programėlės veikimui: duomenų bazę ir serverio talpinimą bei pranešimų siuntimo paslaugą. Šie paslaugų teikėjai duomenis apdoroja tik mūsų nurodymu.",
+      ],
+    },
+    {
+      title: "5.1. Reklama (Google AdMob)",
+      paragraphs: [
+        "Programėlėje (Android ir iOS versijose) rodomos reklamos per Google AdMob paslaugą. AdMob gali naudoti įrenginio reklamos identifikatorių (Android Advertising ID / Apple IDFA), IP adresą ir bendrą įrenginio informaciją reklamoms parodyti, jų dažniui riboti ir sukčiavimui aptikti.",
+        "ES/EEE naudotojams prieš pirmą reklamos parodymą rodomas sutikimo langas. Gali sutikti su personalizuota reklama arba jos atsisakyti – atsisakius rodomos tik neasmenintos reklamos. Pasirinkimą gali pakeisti telefono nustatymuose (Google → Reklamos → ištrinti reklamos ID arba atsisakyti personalizavimo).",
+        "Google duomenų tvarkymas aprašytas: https://policies.google.com/technologies/ads ir https://policies.google.com/privacy.",
       ],
     },
     {
