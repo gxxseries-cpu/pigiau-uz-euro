@@ -16,7 +16,7 @@ const TEST_INTERSTITIAL = {
 };
 
 const env = import.meta.env as Record<string, string | undefined>;
-const TESTING = env.VITE_ADMOB_TESTING !== "false";
+const TESTING = env['VITE_ADMOB_TESTING'] !== "false";
 
 /** Kiek veiksmų (miesto keitimų / „Tendencijos" atidarymų) tarp pilno ekrano reklamų. */
 const INTERSTITIAL_EVERY = 4;
@@ -78,8 +78,8 @@ function init(): Promise<boolean> {
 
 function ids(p: "android" | "ios") {
   return {
-    banner: env.VITE_ADMOB_BANNER_ID || TEST_BANNER[p],
-    interstitial: env.VITE_ADMOB_INTERSTITIAL_ID || TEST_INTERSTITIAL[p],
+    banner: env['VITE_ADMOB_BANNER_ID'] || TEST_BANNER[p],
+    interstitial: env['VITE_ADMOB_INTERSTITIAL_ID'] || TEST_INTERSTITIAL[p],
   };
 }
 
