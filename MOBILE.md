@@ -51,7 +51,7 @@ npx @capacitor/assets generate --iconBackgroundColor "#0b1120" --splashBackgroun
 - Kategorija: Žemėlapiai ir navigacija / Kelionės
 - Reikia 4–8 ekrano nuotraukų (telefono formatu) ir 1024×500 grafinio banerio (Google Play).
 - Duomenų saugumo anketoje nurodyk: lokacija (naudojama funkcijai, nesaugoma),
-  pranešimų identifikatorius (naudojamas pranešimams). Reklamai duomenys nenaudojami.
+  pranešimų identifikatorius (naudojamas pranešimams). Taip pat nurodyk reklamos ID (AdMob, žr. 8 skyrių).
 
 ## 5. GitHub
 
@@ -89,3 +89,36 @@ kainos.
 Reikia Mac + Xcode ir Apple Developer paskyros: Firebase konsolėje pridėk iOS
 programą, parsisiųsk `GoogleService-Info.plist` į `ios/App/App/`, Xcode
 įjunk „Push Notifications“ ir „Background Modes → Remote notifications“.
+
+## 8. Reklamos (Google AdMob)
+
+1. https://admob.google.com → pridėk programą (Android, `lt.pigiausidegalai.app`) ir sukurk
+   du reklamos blokus: **Banner** ir **Interstitial**.
+2. Įrašyk App ID į `android/app/src/main/AndroidManifest.xml`, `<application>` viduje:
+
+```xml
+<meta-data
+  android:name="com.google.android.gms.ads.APPLICATION_ID"
+  android:value="ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY"/>
+```
+
+   Kol testuoji, galima naudoti Google testinį App ID: `ca-app-pub-3940256099942544~3347511713`.
+   iOS: `Info.plist` → `GADApplicationIdentifier` su iOS App ID.
+3. Prieš publikavimą `.env` faile nustatyk realius blokų ID:
+
+```
+VITE_ADMOB_BANNER_ID=ca-app-pub-XXXX/BANNER
+VITE_ADMOB_INTERSTITIAL_ID=ca-app-pub-XXXX/INTERSTITIAL
+VITE_ADMOB_TESTING=false
+```
+
+   Be jų naudojami Google testiniai ID (saugu kūrimui).
+4. AdMob → Privacy & messaging → sukurk **GDPR** pranešimą (UMP). Programėlė jį parodo
+   ES vartotojams prieš pirmą reklamą.
+5. `npx cap sync` → naujas APK/AAB.
+6. Google Play Console → **App content → Data safety**: atnaujink anketą – pažymėk, kad
+   renkami **Device or other IDs (reklamos ID)** reklamos tikslais, ir **Ads → Yes, contains ads**.
+
+Taisyklės kode (`src/lib/ads.ts`): banner tik artimiausių degalinių ekrane; pilno ekrano
+reklama – kas 4 miesto keitimus / „Tendencijos" atidarymus, ne dažniau nei kas 3 min. ir
+ne pirmą minutę po paleidimo. `isPremiumUser()` paruoštas būsimai „be reklamų" prenumeratai.
