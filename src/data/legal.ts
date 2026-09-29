@@ -148,7 +148,40 @@ export const TERMS_OF_USE: LegalDoc = {
       ],
     },
     {
-      title: "5. Sąlygų pakeitimai",
+      title: "5. Nepriklausoma programėlė",
+      paragraphs: [
+        `„${APP_NAME}“ yra nepriklausoma, privati programėlė. Ji NĖRA Lietuvos energetikos agentūros, Energetikos ministerijos ar bet kurios kitos valstybės institucijos programėlė ir jų neatstovauja.`,
+        "Naudojami tik viešai skelbiami degalų kainų duomenys iš ena.lt. Šaltinis už programėlės turinį neatsako ir jos neremia.",
+      ],
+    },
+    {
+      title: "6. Prekių ženklai",
+      paragraphs: [
+        "Visi degalinių tinklų pavadinimai, prekių ženklai ir logotipai priklauso jų teisėtiems savininkams. Jie naudojami tik informaciniu tikslu – kad atpažintum, kurios degalinės kaina rodoma.",
+        "Programėlė nėra susijusi su degalinių tinklais, nėra jų remiama, patvirtinta ar autorizuota, ir nesudaro jokio įspūdžio apie partnerystę.",
+      ],
+    },
+    {
+      title: "7. Neprekiaujame kuru",
+      paragraphs: [
+        "Programėlė yra tik informacinė – ji neparduoda kuro, neatlieka mokėjimų ir nesudaro jokių sutarčių tarp tavęs ir degalinės.",
+        "Teisiškai galiojanti kaina yra tik ta, kurią degalinė nurodo savo švieslentėje ir kasoje pirkimo momentu.",
+      ],
+    },
+    {
+      title: "8. Autorių teisės",
+      paragraphs: [
+        "Programėlės dizainas, tekstai ir programinis kodas yra kūrėjo intelektinė nuosavybė. Kopijuoti ar atkurti be leidimo negalima.",
+      ],
+    },
+    {
+      title: "9. Taikoma teisė",
+      paragraphs: [
+        "Šioms sąlygoms taikoma Lietuvos Respublikos teisė. Nesutarimai sprendžiami derybomis, o nepavykus – Lietuvos Respublikos teismuose.",
+      ],
+    },
+    {
+      title: "10. Sąlygų pakeitimai",
       paragraphs: [
         `Sąlygos gali būti atnaujintos – naujausią versiją visada rasi šiame puslapyje. Klausimus siųsk: ${CONTACT_EMAIL}.`,
       ],
