@@ -5,7 +5,7 @@ publikuoti programėles, kurių turinys gyvena internete (kainos vis tiek atnauj
 Telefone ji atrodys ir veiks kaip tikra programa: be naršyklės juostos, su ikona, pranešimais.
 
 Programėlės paketo vardas: **lt.pigiausidegalai.app**
-Pagrindinis adresas: **https://pigiausiadegalai.app**
+Pagrindinis adresas: **https://pigusdegalai.lt**
 
 ---
 
@@ -31,7 +31,7 @@ Tai oficialus Google įrankis, kuris iš svetainės sugeneruoja Google Play pake
 
 ```
 cd C:\Users\modis\Desktop
-bubblewrap init --manifest https://pigiausiadegalai.app/manifest.webmanifest
+bubblewrap init --manifest https://pigusdegalai.lt/manifest.webmanifest
 ```
 
 Įrankis užduos klausimus – atsakyk taip:
@@ -57,7 +57,7 @@ Gausi failą **`app-release-bundle-signed.aab`** – tai ir yra paketas, kurį k
 1. https://play.google.com/console → **Create app**.
 2. Įkelk `app-release-bundle-signed.aab` į naują **release**.
 3. Užpildyk parduotuvės kortelę (aprašymas, ekrano nuotraukos, ikona 512×512 – yra projekte `public/icon-512.png`).
-4. Privatumo politikos nuoroda: **https://pigiausiadegalai.app/privatumo-politika**
+4. Privatumo politikos nuoroda: **https://pigusdegalai.lt/privatumo-politika**
 5. Išsiųsk peržiūrai (review). Google patikrina 1–7 dienas.
 
 ## 5 žingsnis – susiek programą su svetaine (BŪTINA)
