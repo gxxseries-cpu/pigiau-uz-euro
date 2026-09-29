@@ -46,8 +46,8 @@ npx @capacitor/assets generate --iconBackgroundColor "#0b1120" --splashBackgroun
 
 - Pavadinimas: Pigiausi Degalai
 - Trumpas aprašymas: Degalų kainos Lietuvoje – rask pigiausią degalinę netoliese.
-- Privatumo politika: `https://<svetainė>/privatumo-politika`
-- Naudojimosi sąlygos: `https://<svetainė>/naudojimosi-salygos`
+- Privatumo politika: `https://pigusdegalai.lt/privatumo-politika`
+- Naudojimosi sąlygos: `https://pigusdegalai.lt/naudojimosi-salygos`
 - Kategorija: Žemėlapiai ir navigacija / Kelionės
 - Reikia 4–8 ekrano nuotraukų (telefono formatu) ir 1024×500 grafinio banerio (Google Play).
 - Duomenų saugumo anketoje nurodyk: lokacija (naudojama funkcijai, nesaugoma),

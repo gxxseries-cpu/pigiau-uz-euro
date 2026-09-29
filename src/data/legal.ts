@@ -10,7 +10,7 @@ export const APP_NAME = "Pigiausi Degalai";
 export const APP_VERSION = "1.0.0";
 
 /** Kontaktinis el. paštas privatumo klausimams ir atsiliepimams. */
-export const CONTACT_EMAIL = "[ĮRAŠYTI EL. PAŠTĄ]";
+export const CONTACT_EMAIL = "info@pigusdegalai.lt";
 
 /** Turinio atnaujinimo data (YYYY-MM-DD) – rodoma puslapių apačioje ir viršuje. */
 export const LEGAL_UPDATED = "2026-09-10";
