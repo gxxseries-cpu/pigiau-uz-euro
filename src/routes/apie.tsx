@@ -90,6 +90,20 @@ function AboutPage() {
           </p>
         </section>
 
+        <section className="mt-4 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15">
+          <p className="text-sm font-semibold">Teisinė informacija</p>
+          <p className="mt-2 text-[13px] leading-relaxed text-ice/70">
+            Tai nepriklausoma privati programėlė. Ji nėra Lietuvos energetikos agentūros ar kitos
+            valstybės institucijos programėlė ir jų neatstovauja – naudojami tik viešai skelbiami
+            kainų duomenys.
+          </p>
+          <p className="mt-2 text-[13px] leading-relaxed text-ice/70">
+            Visi degalinių tinklų pavadinimai ir prekių ženklai priklauso jų savininkams ir
+            naudojami tik tam, kad atpažintum degalinę. Programėlė su tinklais nesusijusi ir jų
+            neremiama.
+          </p>
+        </section>
+
         <p className="mt-6 text-center text-[11px] text-ice/40">
           Kainų šaltinis – Lietuvos energetikos agentūra (ena.lt). Kainos orientacinės.
         </p>
