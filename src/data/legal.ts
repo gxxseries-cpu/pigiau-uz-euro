@@ -13,7 +13,7 @@ export const APP_VERSION = "1.0.0";
 export const CONTACT_EMAIL = "info@pigusdegalai.lt";
 
 /** Turinio atnaujinimo data (YYYY-MM-DD) – rodoma puslapių apačioje ir viršuje. */
-export const LEGAL_UPDATED = "2026-09-10";
+export const LEGAL_UPDATED = "2026-09-29";
 
 export type LegalSection = {
   title: string;
