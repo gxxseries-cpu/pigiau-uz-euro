@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
   appName: "Pigiausi Degalai",
   webDir: "public",
   server: {
-    url: "https://pigiau-uz-euro.lovable.app",
+    url: "https://pigusdegalai.lt",
     cleartext: false,
     androidScheme: "https",
   },
