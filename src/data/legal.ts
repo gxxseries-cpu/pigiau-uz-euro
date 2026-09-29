@@ -92,9 +92,23 @@ export const PRIVACY_POLICY: LegalDoc = {
       ],
     },
     {
-      title: "8. Kontaktai",
+      title: "8. Tavo teisės (BDAR)",
       paragraphs: [
-        `Dėl privatumo klausimų ar duomenų ištrynimo rašyk: ${CONTACT_EMAIL}.`,
+        "Pagal ES Bendrąjį duomenų apsaugos reglamentą (BDAR) turi teisę žinoti, kokie su tavimi susiję duomenys tvarkomi, prašyti juos ištaisyti ar ištrinti, apriboti tvarkymą, nesutikti su tvarkymu ir atšaukti duotą sutikimą.",
+        "Kadangi programėlė neprašo registracijos ir nekaupia tave identifikuojančių duomenų, dažniausiai pakanka telefone atšaukti lokacijos ar pranešimų leidimą arba pašalinti programėlę.",
+        "Jei manai, kad tavo duomenys tvarkomi neteisėtai, gali pateikti skundą Valstybinei duomenų apsaugos inspekcijai (vdai.lrv.lt).",
+      ],
+    },
+    {
+      title: "9. Vaikų privatumas",
+      paragraphs: [
+        "Programėlė skirta vairuotojams ir nėra orientuota į vaikus iki 16 metų. Sąmoningai nerenkame jokių vaikų duomenų.",
+      ],
+    },
+    {
+      title: "10. Duomenų valdytojas ir kontaktai",
+      paragraphs: [
+        `Duomenų valdytojas – programėlės „${APP_NAME}“ kūrėjas (fizinis asmuo, Lietuva). Dėl privatumo klausimų, duomenų ištrynimo ar BDAR teisių rašyk: ${CONTACT_EMAIL}. Atsakome per 30 kalendorinių dienų.`,
       ],
     },
   ],
