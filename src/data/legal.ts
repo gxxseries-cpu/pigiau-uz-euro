@@ -13,7 +13,7 @@ export const APP_VERSION = "1.0.0";
 export const CONTACT_EMAIL = "info@pigusdegalai.lt";
 
 /** Turinio atnaujinimo data (YYYY-MM-DD) – rodoma puslapių apačioje ir viršuje. */
-export const LEGAL_UPDATED = "2026-09-10";
+export const LEGAL_UPDATED = "2026-09-29";
 
 export type LegalSection = {
   title: string;
@@ -92,9 +92,23 @@ export const PRIVACY_POLICY: LegalDoc = {
       ],
     },
     {
-      title: "8. Kontaktai",
+      title: "8. Tavo teisės (BDAR)",
       paragraphs: [
-        `Dėl privatumo klausimų ar duomenų ištrynimo rašyk: ${CONTACT_EMAIL}.`,
+        "Pagal ES Bendrąjį duomenų apsaugos reglamentą (BDAR) turi teisę žinoti, kokie su tavimi susiję duomenys tvarkomi, prašyti juos ištaisyti ar ištrinti, apriboti tvarkymą, nesutikti su tvarkymu ir atšaukti duotą sutikimą.",
+        "Kadangi programėlė neprašo registracijos ir nekaupia tave identifikuojančių duomenų, dažniausiai pakanka telefone atšaukti lokacijos ar pranešimų leidimą arba pašalinti programėlę.",
+        "Jei manai, kad tavo duomenys tvarkomi neteisėtai, gali pateikti skundą Valstybinei duomenų apsaugos inspekcijai (vdai.lrv.lt).",
+      ],
+    },
+    {
+      title: "9. Vaikų privatumas",
+      paragraphs: [
+        "Programėlė skirta vairuotojams ir nėra orientuota į vaikus iki 16 metų. Sąmoningai nerenkame jokių vaikų duomenų.",
+      ],
+    },
+    {
+      title: "10. Duomenų valdytojas ir kontaktai",
+      paragraphs: [
+        `Duomenų valdytojas – programėlės „${APP_NAME}“ kūrėjas (fizinis asmuo, Lietuva). Dėl privatumo klausimų, duomenų ištrynimo ar BDAR teisių rašyk: ${CONTACT_EMAIL}. Atsakome per 30 kalendorinių dienų.`,
       ],
     },
   ],
@@ -134,7 +148,40 @@ export const TERMS_OF_USE: LegalDoc = {
       ],
     },
     {
-      title: "5. Sąlygų pakeitimai",
+      title: "5. Nepriklausoma programėlė",
+      paragraphs: [
+        `„${APP_NAME}“ yra nepriklausoma, privati programėlė. Ji NĖRA Lietuvos energetikos agentūros, Energetikos ministerijos ar bet kurios kitos valstybės institucijos programėlė ir jų neatstovauja.`,
+        "Naudojami tik viešai skelbiami degalų kainų duomenys iš ena.lt. Šaltinis už programėlės turinį neatsako ir jos neremia.",
+      ],
+    },
+    {
+      title: "6. Prekių ženklai",
+      paragraphs: [
+        "Visi degalinių tinklų pavadinimai, prekių ženklai ir logotipai priklauso jų teisėtiems savininkams. Jie naudojami tik informaciniu tikslu – kad atpažintum, kurios degalinės kaina rodoma.",
+        "Programėlė nėra susijusi su degalinių tinklais, nėra jų remiama, patvirtinta ar autorizuota, ir nesudaro jokio įspūdžio apie partnerystę.",
+      ],
+    },
+    {
+      title: "7. Neprekiaujame kuru",
+      paragraphs: [
+        "Programėlė yra tik informacinė – ji neparduoda kuro, neatlieka mokėjimų ir nesudaro jokių sutarčių tarp tavęs ir degalinės.",
+        "Teisiškai galiojanti kaina yra tik ta, kurią degalinė nurodo savo švieslentėje ir kasoje pirkimo momentu.",
+      ],
+    },
+    {
+      title: "8. Autorių teisės",
+      paragraphs: [
+        "Programėlės dizainas, tekstai ir programinis kodas yra kūrėjo intelektinė nuosavybė. Kopijuoti ar atkurti be leidimo negalima.",
+      ],
+    },
+    {
+      title: "9. Taikoma teisė",
+      paragraphs: [
+        "Šioms sąlygoms taikoma Lietuvos Respublikos teisė. Nesutarimai sprendžiami derybomis, o nepavykus – Lietuvos Respublikos teismuose.",
+      ],
+    },
+    {
+      title: "10. Sąlygų pakeitimai",
       paragraphs: [
         `Sąlygos gali būti atnaujintos – naujausią versiją visada rasi šiame puslapyje. Klausimus siųsk: ${CONTACT_EMAIL}.`,
       ],
