@@ -5,7 +5,7 @@ publikuoti programėles, kurių turinys gyvena internete (kainos vis tiek atnauj
 Telefone ji atrodys ir veiks kaip tikra programa: be naršyklės juostos, su ikona, pranešimais.
 
 Programėlės paketo vardas: **lt.pigiausidegalai.app**
-Pagrindinis adresas: **https://pigiausiadegalai.app**
+Pagrindinis adresas: **https://pigusdegalai.lt**
 
 ---
 
