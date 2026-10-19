@@ -68,36 +68,60 @@ function sinceDate(days: number) {
   return since.toISOString().slice(0, 10);
 }
 
-/** Kainų nuskaitymas puslapiais – vienoje užklausoje grąžinama ne daugiau kaip 1000 eilučių. */
+/** Kainų nuskaitymas puslapiais lygiagrečiai – vienoje užklausoje grąžinama ne daugiau kaip 1000 eilučių. */
 async function fetchAllPrices(
   supabase: ReturnType<typeof publicClient>,
   sinceStr: string,
 ) {
-  const PAGE = 1000;
-  const all: Array<{
+  type Row = {
     station_id: string;
     fuel_type: string;
     price: number;
     price_date: string;
     updated_at: string;
-  }> = [];
-  for (let from = 0; ; from += PAGE) {
+  };
+  const PAGE = 1000;
+  const BATCH = 12;
+  const { count, error: countErr } = await supabase
+    .from("station_prices")
+    .select("id", { count: "exact", head: true })
+    .gte("price_date", sinceStr);
+  if (countErr) throw countErr;
+  const pages = Math.ceil((count ?? 0) / PAGE);
+  const fetchPage = async (i: number) => {
     const { data, error } = await supabase
       .from("station_prices")
       .select("station_id, fuel_type, price, price_date, updated_at")
       .gte("price_date", sinceStr)
       .order("price_date", { ascending: true })
-      .order("station_id", { ascending: true })
-      .range(from, from + PAGE - 1);
+      .order("id", { ascending: true })
+      .range(i * PAGE, i * PAGE + PAGE - 1);
     if (error) throw error;
-    all.push(...((data ?? []) as typeof all));
-    if ((data ?? []).length < PAGE) break;
+    return (data ?? []) as Row[];
+  };
+  const all: Row[] = [];
+  for (let start = 0; start < pages; start += BATCH) {
+    const idx = Array.from({ length: Math.min(BATCH, pages - start) }, (_, k) => start + k);
+    const results = await Promise.all(idx.map(fetchPage));
+    for (const r of results) all.push(...r);
   }
   return all;
 }
 
+/** Trumpalaikis serverio podėlis, kad kiekvienam lankytojui nereikėtų iš naujo skaičiuoti istorijos. */
+const CACHE_MS = 3 * 60 * 1000;
+let fuelCache: { at: number; data: FuelData } | null = null;
+
 export const getFuelData = createServerFn({ method: "GET" }).handler(
   async (): Promise<FuelData> => {
+    if (fuelCache && Date.now() - fuelCache.at < CACHE_MS) return fuelCache.data;
+    const data = await loadFuelData();
+    if (data.stations.length > 0) fuelCache = { at: Date.now(), data };
+    return data;
+  },
+);
+
+async function loadFuelData(): Promise<FuelData> {
     const supabase = publicClient();
     const sinceStr = sinceDate(HISTORY_DAYS);
 
@@ -200,10 +224,7 @@ export const getFuelData = createServerFn({ method: "GET" }).handler(
       latestDate,
       history,
     };
-
-
-  },
-);
+}
 
 /** Vienos degalinės kainų istorija (iki 6 mėn.) grafikui detalioje kortelėje. */
 export const getStationTrend = createServerFn({ method: "GET" })
