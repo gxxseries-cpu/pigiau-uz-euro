@@ -114,6 +114,14 @@ let fuelCache: { at: number; data: FuelData } | null = null;
 
 export const getFuelData = createServerFn({ method: "GET" }).handler(
   async (): Promise<FuelData> => {
+    if (fuelCache && Date.now() - fuelCache.at < CACHE_MS) return fuelCache.data;
+    const data = await loadFuelData();
+    if (data.stations.length > 0) fuelCache = { at: Date.now(), data };
+    return data;
+  },
+);
+
+async function loadFuelData(): Promise<FuelData> {
     const supabase = publicClient();
     const sinceStr = sinceDate(HISTORY_DAYS);
 
@@ -216,10 +224,7 @@ export const getFuelData = createServerFn({ method: "GET" }).handler(
       latestDate,
       history,
     };
-
-
-  },
-);
+}
 
 /** Vienos degalinės kainų istorija (iki 6 mėn.) grafikui detalioje kortelėje. */
 export const getStationTrend = createServerFn({ method: "GET" })
