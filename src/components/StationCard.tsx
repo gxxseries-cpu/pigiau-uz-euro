@@ -1,4 +1,5 @@
 import { BrandLogo } from "@/components/BrandLogo";
+import { NavigateButton } from "@/components/NavigateButton";
 import { MarketSignalBadge } from "@/components/MarketSignal";
 import type { MarketSignal } from "@/lib/fuel.functions";
 import {
@@ -33,9 +34,6 @@ export function StationCard({
   signal,
 }: Props) {
   const secondary = SECONDARY.filter((f) => f !== fuel).slice(0, 3);
-  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-    `${station.brand} ${station.address}`,
-  )}`;
   const shareText = `${station.brand}, ${station.address} — ${FUEL_LABELS[fuel]} ${formatPrice(
     station.prices[fuel],
   )}/l`;
@@ -122,18 +120,14 @@ export function StationCard({
       <p className="mt-1 text-[11px] text-ice/50">Kainos atnaujintos {station.updatedAt}</p>
 
       <div className="mt-3 flex gap-2">
-        <a
-          href={mapsUrl}
-          target="_blank"
-          rel="noreferrer"
+        <NavigateButton
+          station={station}
           className={
             cheapest
               ? "flex-1 rounded-xl bg-mint py-2.5 text-center text-sm font-semibold text-frost"
               : "flex-1 rounded-xl bg-ice/5 py-2.5 text-center text-sm font-semibold ring-1 ring-ice/10"
           }
-        >
-          Vesti navigaciją
-        </a>
+        />
         <button
           onClick={share}
           aria-label="Dalintis"

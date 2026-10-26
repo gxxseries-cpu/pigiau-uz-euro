@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { BrandLogo } from "@/components/BrandLogo";
+import { NavigateButton } from "@/components/NavigateButton";
 import { PriceTrend } from "@/components/PriceTrend";
 import { DISCOUNT_DISCLAIMER, discountsForBrand } from "@/data/discounts";
 import {
@@ -34,9 +35,6 @@ export function StationDetail({
     queryFn: () => getStationTrend({ data: { stationId: station.id, fuel } }),
   });
 
-  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-    `${station.brand} ${station.address}`,
-  )}`;
 
   return (
     <div
@@ -107,14 +105,10 @@ export function StationDetail({
         <PriceTrend fuel={fuel} title={station.brand} points={points ?? []} />
 
         <div className="mt-4 flex gap-2">
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noreferrer"
+          <NavigateButton
+            station={station}
             className="flex-1 rounded-xl bg-mint py-3 text-center text-sm font-semibold text-frost"
-          >
-            Vesti navigaciją
-          </a>
+          />
           <button
             onClick={onClose}
             className="rounded-xl bg-ice/5 px-4 text-sm ring-1 ring-ice/10"
