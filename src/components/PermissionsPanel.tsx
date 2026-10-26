@@ -16,6 +16,7 @@ const PUSH_LABEL: Record<PushState, string> = {
   nepaklausta: "Dar nepaprašyta",
   leista: "Leista",
   atmesta: "Neleista",
+  nesukonfiguruota: "Dar ruošiama",
 };
 
 function StatusRow({
