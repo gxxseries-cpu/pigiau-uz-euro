@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import { MarketSignalBadge, MarketSignalCard } from "@/components/MarketSignal";
@@ -20,7 +20,7 @@ import {
   type FuelType,
   type Station,
 } from "@/data/stations";
-import { getFuelData, getMarketSignal } from "@/lib/fuel.functions";
+import { getFuelData, getFuelHistory, getMarketSignal } from "@/lib/fuel.functions";
 import { hideBanner, showBanner, trackAdAction } from "@/lib/ads";
 
 const TITLE = "Pigiausi Degalai – degalų kainos Lietuvoje";
@@ -30,6 +30,12 @@ const DESC =
 const fuelQuery = queryOptions({
   queryKey: ["fuel-data"],
   queryFn: () => getFuelData(),
+});
+
+const historyQuery = queryOptions({
+  queryKey: ["fuel-history"],
+  queryFn: () => getFuelHistory(),
+  staleTime: 5 * 60 * 1000,
 });
 
 const signalQuery = queryOptions({
@@ -89,6 +95,8 @@ type TabId = (typeof TABS)[number]["id"];
 function Index() {
   const { data } = useSuspenseQuery(fuelQuery);
   const { data: signal } = useSuspenseQuery(signalQuery);
+  // Istorija kraunama fone – nestabdo pradinio ekrano.
+  const { data: history } = useQuery(historyQuery);
   const cities = data.cities.length > 0 ? data.cities : Object.keys(CITY_CENTERS);
 
   const [city, setCity] = useState(() => (cities.includes("Vilnius") ? "Vilnius" : cities[0]!));
@@ -356,7 +364,7 @@ function Index() {
     ? ((km / 100) * litersPer100 * (priciest.prices[fuel] ?? 0)).toFixed(2).replace(".", ",")
     : "0,00";
 
-  const trendPoints = data.history[city]?.[fuel] ?? [];
+  const trendPoints = history?.[city]?.[fuel] ?? [];
   const dateLabel = data.latestDate
     ? new Date(data.latestDate).toLocaleDateString("lt-LT", {
         day: "numeric",

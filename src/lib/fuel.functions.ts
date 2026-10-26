@@ -23,8 +23,6 @@ export type FuelData = {
   majorBrands: string[];
   cities: string[];
   latestDate: string | null;
-  /** miestas -> kuro tipas -> paskutinių 180 d. vidutinės kainos */
-  history: Record<string, Partial<Record<FuelType, TrendPoint[]>>>;
 };
 
 
@@ -68,38 +66,39 @@ function sinceDate(days: number) {
   return since.toISOString().slice(0, 10);
 }
 
+type PriceRow = {
+  station_id: string;
+  fuel_type: string;
+  price: number;
+  price_date: string;
+  updated_at: string;
+};
+
 /** Kainų nuskaitymas puslapiais lygiagrečiai – vienoje užklausoje grąžinama ne daugiau kaip 1000 eilučių. */
 async function fetchAllPrices(
   supabase: ReturnType<typeof publicClient>,
-  sinceStr: string,
-) {
-  type Row = {
-    station_id: string;
-    fuel_type: string;
-    price: number;
-    price_date: string;
-    updated_at: string;
-  };
+  filter: { since?: string; date?: string },
+): Promise<PriceRow[]> {
   const PAGE = 1000;
   const BATCH = 12;
-  const { count, error: countErr } = await supabase
-    .from("station_prices")
-    .select("id", { count: "exact", head: true })
-    .gte("price_date", sinceStr);
+  const apply = <Q extends { gte: any; eq: any }>(q: Q): Q =>
+    filter.date ? q.eq("price_date", filter.date) : q.gte("price_date", filter.since!);
+  const { count, error: countErr } = await apply(
+    supabase.from("station_prices").select("id", { count: "exact", head: true }),
+  );
   if (countErr) throw countErr;
   const pages = Math.ceil((count ?? 0) / PAGE);
   const fetchPage = async (i: number) => {
-    const { data, error } = await supabase
-      .from("station_prices")
-      .select("station_id, fuel_type, price, price_date, updated_at")
-      .gte("price_date", sinceStr)
+    const { data, error } = await apply(
+      supabase.from("station_prices").select("station_id, fuel_type, price, price_date, updated_at"),
+    )
       .order("price_date", { ascending: true })
       .order("id", { ascending: true })
       .range(i * PAGE, i * PAGE + PAGE - 1);
     if (error) throw error;
-    return (data ?? []) as Row[];
+    return (data ?? []) as PriceRow[];
   };
-  const all: Row[] = [];
+  const all: PriceRow[] = [];
   for (let start = 0; start < pages; start += BATCH) {
     const idx = Array.from({ length: Math.min(BATCH, pages - start) }, (_, k) => start + k);
     const results = await Promise.all(idx.map(fetchPage));
@@ -108,10 +107,14 @@ async function fetchAllPrices(
   return all;
 }
 
-/** Trumpalaikis serverio podėlis, kad kiekvienam lankytojui nereikėtų iš naujo skaičiuoti istorijos. */
+/** Trumpalaikis serverio podėlis. */
 const CACHE_MS = 3 * 60 * 1000;
 let fuelCache: { at: number; data: FuelData } | null = null;
+let historyCache: { at: number; data: FuelHistory } | null = null;
 
+export type FuelHistory = Record<string, Partial<Record<FuelType, TrendPoint[]>>>;
+
+/** Pradiniam ekranui – tik degalinės ir paskutinės dienos kainos (greita). */
 export const getFuelData = createServerFn({ method: "GET" }).handler(
   async (): Promise<FuelData> => {
     if (fuelCache && Date.now() - fuelCache.at < CACHE_MS) return fuelCache.data;
@@ -121,69 +124,37 @@ export const getFuelData = createServerFn({ method: "GET" }).handler(
   },
 );
 
-async function loadFuelData(): Promise<FuelData> {
-    const supabase = publicClient();
-    const sinceStr = sinceDate(HISTORY_DAYS);
+/** 6 mėn. miestų vidurkių istorija – kraunama atskirai, fone. */
+export const getFuelHistory = createServerFn({ method: "GET" }).handler(
+  async (): Promise<FuelHistory> => {
+    if (historyCache && Date.now() - historyCache.at < CACHE_MS) return historyCache.data;
+    const data = await loadHistory();
+    if (Object.keys(data).length > 0) historyCache = { at: Date.now(), data };
+    return data;
+  },
+);
 
-    type StationRow = {
-      id: string;
-      brand: string;
-      area: string | null;
-      address: string;
-      city: string;
-      lat: number | null;
-      lon: number | null;
-    };
-    let stationRows: StationRow[] = [];
-    let priceRows: Awaited<ReturnType<typeof fetchAllPrices>> = [];
-    try {
-      const [stations, prices] = await Promise.all([
-        supabase.from("stations").select("id, brand, area, address, city, lat, lon"),
-        fetchAllPrices(supabase, sinceStr),
-      ]);
-      if (stations.error) throw stations.error;
-      stationRows = stations.data ?? [];
-      priceRows = prices;
-    } catch (err) {
-      console.error("Nepavyko gauti duomenų:", err);
-      return { stations: [], brands: [], majorBrands: [], cities: [], latestDate: null, history: {} };
-    }
-
-    const stationsById = new Map((stationRows ?? []).map((s) => [s.id, s]));
-    const latestDate =
-      (priceRows ?? []).reduce<string | null>(
-        (acc, r) => (acc === null || r.price_date > acc ? r.price_date : acc),
-        null,
-      ) ?? null;
-
-    const prices = new Map<string, Station["prices"]>();
-    const updated = new Map<string, string>();
+async function loadHistory(): Promise<FuelHistory> {
+  const supabase = publicClient();
+  try {
+    const [stations, rows] = await Promise.all([
+      supabase.from("stations").select("id, city"),
+      fetchAllPrices(supabase, { since: sinceDate(HISTORY_DAYS) }),
+    ]);
+    if (stations.error) throw stations.error;
+    const cityById = new Map((stations.data ?? []).map((s) => [s.id, s.city]));
     const sums: Record<string, Record<string, Record<string, { sum: number; n: number }>>> = {};
-
-    for (const row of priceRows ?? []) {
-      const station = stationsById.get(row.station_id);
-      if (!station) continue;
+    for (const row of rows) {
+      const city = cityById.get(row.station_id);
       const key = FUEL_KEY[row.fuel_type];
-      if (!key) continue;
-      const value = Number(row.price);
-
-      if (row.price_date === latestDate) {
-        const bucket = prices.get(row.station_id) ?? {};
-        bucket[key] = value;
-        prices.set(row.station_id, bucket);
-        updated.set(row.station_id, timeLabel(row.updated_at));
-      }
-
-      if (key !== "markedDiesel") {
-        sums[station.city] ??= {};
-        sums[station.city]![key] ??= {};
-        const day = (sums[station.city]![key]![row.price_date] ??= { sum: 0, n: 0 });
-        day.sum += value;
-        day.n += 1;
-      }
+      if (!city || !key || key === "markedDiesel") continue;
+      sums[city] ??= {};
+      sums[city]![key] ??= {};
+      const day = (sums[city]![key]![row.price_date] ??= { sum: 0, n: 0 });
+      day.sum += Number(row.price);
+      day.n += 1;
     }
-
-    const history: FuelData["history"] = {};
+    const history: FuelHistory = {};
     for (const [city, byFuel] of Object.entries(sums)) {
       history[city] = {};
       for (const [fuel, byDay] of Object.entries(byFuel)) {
@@ -192,38 +163,84 @@ async function loadFuelData(): Promise<FuelData> {
           .map(([date, v]) => ({ date, avg: Math.round((v.sum / v.n) * 1000) / 1000 }));
       }
     }
+    return history;
+  } catch (err) {
+    console.error("Nepavyko gauti istorijos:", err);
+    return {};
+  }
+}
 
-    const stations: Station[] = [];
-    for (const s of stationRows ?? []) {
-      // Visos degalinės rodomos – ir mažų tinklų bei pavienės (pvz. „Mildos“ Skaudvilėje).
-      stations.push({
-        id: s.id,
-        brand: brandLabel(s.brand),
-        area: s.area ?? "",
-        address: s.address,
-        city: s.city,
-        lat: s.lat,
-        lon: s.lon,
-        distanceKm: 0,
-        updatedAt: updated.get(s.id) ?? "—",
-        prices: prices.get(s.id) ?? {},
-      });
-    }
+async function loadFuelData(): Promise<FuelData> {
+  const supabase = publicClient();
+  type StationRow = {
+    id: string;
+    brand: string;
+    area: string | null;
+    address: string;
+    city: string;
+    lat: number | null;
+    lon: number | null;
+  };
+  let stationRows: StationRow[] = [];
+  let priceRows: PriceRow[] = [];
+  let latestDate: string | null = null;
+  try {
+    const [stations, latest] = await Promise.all([
+      supabase.from("stations").select("id, brand, area, address, city, lat, lon"),
+      supabase
+        .from("station_prices")
+        .select("price_date")
+        .order("price_date", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+    if (stations.error) throw stations.error;
+    if (latest.error) throw latest.error;
+    stationRows = stations.data ?? [];
+    latestDate = latest.data?.price_date ?? null;
+    if (latestDate) priceRows = await fetchAllPrices(supabase, { date: latestDate });
+  } catch (err) {
+    console.error("Nepavyko gauti duomenų:", err);
+    return { stations: [], brands: [], majorBrands: [], cities: [], latestDate: null };
+  }
 
-    const brandSet = new Set(stations.map((s) => s.brand));
-    const majors = MAJOR_BRANDS.filter((b) => brandSet.has(b));
-    const others = [...brandSet]
-      .filter((b) => !isMajorBrand(b))
-      .sort((a, b) => a.localeCompare(b, "lt"));
+  const prices = new Map<string, Station["prices"]>();
+  const updated = new Map<string, string>();
+  for (const row of priceRows) {
+    const key = FUEL_KEY[row.fuel_type];
+    if (!key) continue;
+    const bucket = prices.get(row.station_id) ?? {};
+    bucket[key] = Number(row.price);
+    prices.set(row.station_id, bucket);
+    updated.set(row.station_id, timeLabel(row.updated_at));
+  }
 
-    return {
-      stations,
-      brands: [...majors, ...others],
-      majorBrands: majors,
-      cities: [...new Set(stations.map((s) => s.city))].sort((a, b) => a.localeCompare(b, "lt")),
-      latestDate,
-      history,
-    };
+  const stations: Station[] = stationRows.map((s) => ({
+    id: s.id,
+    brand: brandLabel(s.brand),
+    area: s.area ?? "",
+    address: s.address,
+    city: s.city,
+    lat: s.lat,
+    lon: s.lon,
+    distanceKm: 0,
+    updatedAt: updated.get(s.id) ?? "—",
+    prices: prices.get(s.id) ?? {},
+  }));
+
+  const brandSet = new Set(stations.map((s) => s.brand));
+  const majors = MAJOR_BRANDS.filter((b) => brandSet.has(b));
+  const others = [...brandSet]
+    .filter((b) => !isMajorBrand(b))
+    .sort((a, b) => a.localeCompare(b, "lt"));
+
+  return {
+    stations,
+    brands: [...majors, ...others],
+    majorBrands: majors,
+    cities: [...new Set(stations.map((s) => s.city))].sort((a, b) => a.localeCompare(b, "lt")),
+    latestDate,
+  };
 }
 
 /** Vienos degalinės kainų istorija (iki 6 mėn.) grafikui detalioje kortelėje. */
