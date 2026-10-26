@@ -30,6 +30,8 @@ export function PushOptIn({ city, fuel }: { city: string; fuel: string }) {
       setTimeout(close, 1800);
     } else if (next === "atmesta") {
       setNote("Pranešimai neleisti. Įjungti galima naršyklės svetainės nustatymuose.");
+    } else if (next === "nesukonfiguruota") {
+      setNote("Pranešimai dar ruošiami – pabandykite vėliau.");
     } else {
       setNote("Peržiūros lange leidimo paprašyti negalima – atidaryk programėlę atskirame skirtuke.");
     }

@@ -13,7 +13,7 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 
-export type PushState = "nepalaikoma" | "nepaklausta" | "leista" | "atmesta";
+export type PushState = "nepalaikoma" | "nepaklausta" | "leista" | "atmesta" | "nesukonfiguruota";
 
 const DEVICE_KEY = "degalai-push-device";
 
@@ -148,7 +148,12 @@ export async function enablePush(city: string, fuel: string): Promise<PushState>
     Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
   if (permission !== "granted") return permission === "denied" ? "atmesta" : "nepaklausta";
 
-  const token = await webToken().catch(() => null);
-  await registerPushSubscriber(city, fuel, token ?? undefined);
+  const token = await webToken().catch((err) => {
+    console.error("Nepavyko gauti pranešimų rakto:", err);
+    return null;
+  });
+  // Be tikro rakto pranešimas niekada neatkeliautų – netikro neįrašome.
+  if (!token) return "nesukonfiguruota";
+  await registerPushSubscriber(city, fuel, token);
   return "leista";
 }
