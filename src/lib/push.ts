@@ -86,7 +86,17 @@ const TOKEN_KEY = "degalai-push-token";
 export async function syncPushCity(city: string) {
   if (typeof window === "undefined" || !city) return;
   const token = localStorage.getItem(TOKEN_KEY);
-  if (!token) return;
+  if (!token) {
+    // Leidimas jau duotas, bet raktas neišsaugotas – užregistruojame iš naujo.
+    if (
+      "Notification" in window &&
+      Notification.permission === "granted" &&
+      window.top === window.self
+    ) {
+      await enablePush(city, "diesel").catch(() => undefined);
+    }
+    return;
+  }
   const { error } = await supabase.rpc("update_push_city", { _token: token, _city: city });
   if (error) console.error("Nepavyko atnaujinti pranešimų miesto:", error.message);
 }
@@ -129,8 +139,10 @@ async function webToken(): Promise<string | null> {
     appId: webAppId,
     messagingSenderId: firebaseConfig.messagingSenderId,
   }).toString();
+  // Atskira sritis, kad nesikirstų su programėlės /sw.js (abu buvo „/" ir vienas išstumdavo kitą).
   const registration = await navigator.serviceWorker.register(
     `/firebase-messaging-sw.js?${query}`,
+    { scope: "/firebase-cloud-messaging-push-scope" },
   );
   const app = getApps()[0] ?? initializeApp(firebaseConfig as Record<string, string>);
   const messaging = getMessaging(app);
