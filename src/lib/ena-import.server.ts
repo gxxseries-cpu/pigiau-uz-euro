@@ -268,7 +268,24 @@ export async function runDailyImport() {
     return { status, message, ...counts };
   };
 
-  // 1. Pirmiausia bandoma pirminė ENA ataskaita (Power BI) – nebereikia jokios nuorodos.
+  // 0. Tiesioginis ENA API (degalukainos.ena.lt) – šviežiausios kainos su dienos pakeitimais.
+  try {
+    const { fetchEnaLiveRows } = await import("./ena-live.server");
+    const { rows, date } = await fetchEnaLiveRows();
+    const counts = await importRows(rows, date);
+    if (counts.prices > 0) {
+      return finish(
+        "sėkmė",
+        `Atnaujinta iš ENA (tiesiogiai): ${counts.prices} kainų (${counts.stations} degalinių), data ${date}.`,
+        counts,
+        date,
+      );
+    }
+  } catch (err) {
+    console.error("ENA tiesioginio API klaida:", err);
+  }
+
+  // 1. Atsarginis kelias – ENA ataskaita (Power BI).
   try {
     const { fetchEnaPowerBiRows } = await import("./powerbi.server");
     const { rows, date } = await fetchEnaPowerBiRows();
