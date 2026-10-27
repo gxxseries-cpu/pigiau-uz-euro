@@ -226,6 +226,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_push_city: {
+        Args: { _city: string; _token: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"

@@ -65,16 +65,30 @@ export function currentPushState(): PushState {
 
 /** Įrašo įrenginį į prenumeratorių sąrašą (miestas ir kuras – pranešimo turiniui). */
 export async function registerPushSubscriber(city: string, fuel: string, token?: string) {
+  const finalToken = token ?? fallbackToken();
+  localStorage.setItem(TOKEN_KEY, finalToken);
   const { error } = await supabase.from("push_subscribers").insert({
-    token: token ?? fallbackToken(),
+    token: finalToken,
     platform: token && !token.startsWith("web-") ? "fcm" : "web",
     city,
     fuel,
   });
-  // Pakartotinis registravimas (unikalus token) – normalu, klaidos nerodome.
   if (error && !error.message.includes("duplicate")) {
     console.error("Nepavyko išsaugoti pranešimų prenumeratos:", error.message);
   }
+  // Įrenginys jau buvo užregistruotas – atnaujiname jo miestą.
+  if (error) await syncPushCity(city);
+}
+
+const TOKEN_KEY = "degalai-push-token";
+
+/** Atnaujina pranešimų miestą pagal dabartinę (GPS) vietą, jei įrenginys užsiregistravęs. */
+export async function syncPushCity(city: string) {
+  if (typeof window === "undefined" || !city) return;
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return;
+  const { error } = await supabase.rpc("update_push_city", { _token: token, _city: city });
+  if (error) console.error("Nepavyko atnaujinti pranešimų miesto:", error.message);
 }
 
 /** Native (Capacitor) pranešimų registracija – grąžina FCM raktą arba null. */

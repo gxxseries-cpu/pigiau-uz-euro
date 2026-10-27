@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MarketSignalBadge, MarketSignalCard } from "@/components/MarketSignal";
 import { PriceTrend } from "@/components/PriceTrend";
 import { PushOptIn } from "@/components/PushOptIn";
+import { syncPushCity } from "@/lib/push";
 import { StationCard } from "@/components/StationCard";
 import { StationDetail } from "@/components/StationDetail";
 import {
@@ -189,6 +190,11 @@ function Index() {
     requestLocation();
   };
 
+
+  /** Pranešimų miestas seka tikrą GPS vietą (ne ranka pasirinktą miestą). */
+  useEffect(() => {
+    if (coords) void syncPushCity(nearestCity(coords.lat, coords.lon));
+  }, [coords]);
 
   useEffect(() => {
     const stored = localStorage.getItem("degalai-favorites");
