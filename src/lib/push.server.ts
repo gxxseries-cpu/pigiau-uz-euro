@@ -115,7 +115,19 @@ export async function sendPriceUpdateNotifications() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        message: { token: sub.token, notification: message, data: { path: "/" } },
+        message: {
+          token: sub.token,
+          notification: message,
+          data: { path: "/" },
+          // Būsenos juostai (badge) reikia permatomo balto silueto, kitaip rodomas baltas kvadratas.
+          webpush: {
+            notification: {
+              icon: "https://pigusdegalai.lt/icon-192.png",
+              badge: "https://pigusdegalai.lt/notification-badge.png",
+            },
+            fcm_options: { link: "https://pigusdegalai.lt/" },
+          },
+        },
       }),
     });
     if (res.ok) {
