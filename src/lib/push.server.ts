@@ -115,7 +115,20 @@ export async function sendPriceUpdateNotifications() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        message: { token: sub.token, notification: message, data: { path: "/" } },
+        message: {
+          token: sub.token,
+          notification: message,
+          data: { path: "/" },
+          // Android būsenos juostai reikia permatomo balto silueto, kitaip rodomas baltas kvadratas.
+          android: { notification: { icon: "ic_stat_notification", color: "#0f172a" } },
+          webpush: {
+            notification: {
+              icon: "https://pigusdegalai.lt/icon-192.png",
+              badge: "https://pigusdegalai.lt/notification-badge.png",
+            },
+            fcm_options: { link: "https://pigusdegalai.lt/" },
+          },
+        },
       }),
     });
     if (res.ok) {
