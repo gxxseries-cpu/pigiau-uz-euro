@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { currentPushState, enablePush, type PushState } from "@/lib/push";
 
 const DISMISS_KEY = "degalai-push-dismissed";
+/** Kiek dienų slėpti pasiūlymą po „Ne dabar" – vėliau paklausiame iš naujo. */
+const REMIND_AFTER_DAYS = 3;
 
 /** Pirmą kartą atidarius programėlę pasiūlome pranešimus apie atsinaujinusias kainas. */
 export function PushOptIn({ city, fuel }: { city: string; fuel: string }) {
@@ -12,13 +14,21 @@ export function PushOptIn({ city, fuel }: { city: string; fuel: string }) {
 
   useEffect(() => {
     setState(currentPushState());
-    setDismissed(localStorage.getItem(DISMISS_KEY) === "1");
+    const raw = localStorage.getItem(DISMISS_KEY);
+    if (!raw) {
+      setDismissed(false);
+      return;
+    }
+    // Senasis įrašas „1" – traktuojame kaip paspaustą seniai, todėl klausiame iš naujo.
+    const dismissedAt = raw === "1" ? 0 : Number(raw);
+    const remindAfter = REMIND_AFTER_DAYS * 24 * 60 * 60 * 1000;
+    setDismissed(Number.isFinite(dismissedAt) && Date.now() - dismissedAt < remindAfter);
   }, []);
 
   if (state === null || dismissed || state === "leista" || state === "nepalaikoma") return null;
 
   const close = () => {
-    localStorage.setItem(DISMISS_KEY, "1");
+    localStorage.setItem(DISMISS_KEY, String(Date.now()));
     setDismissed(true);
   };
 
