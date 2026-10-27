@@ -119,8 +119,7 @@ export async function sendPriceUpdateNotifications() {
           token: sub.token,
           notification: message,
           data: { path: "/" },
-          // Android būsenos juostai reikia permatomo balto silueto, kitaip rodomas baltas kvadratas.
-          android: { notification: { icon: "ic_stat_notification", color: "#0f172a" } },
+          // Būsenos juostai (badge) reikia permatomo balto silueto, kitaip rodomas baltas kvadratas.
           webpush: {
             notification: {
               icon: "https://pigusdegalai.lt/icon-192.png",
