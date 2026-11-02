@@ -188,6 +188,32 @@ html.native-app textarea {
   will-change: transform, opacity;
 }
 
+/* Paleidimo ekrano sluoksnis: pilno ekrano fonas, kuris pats išblunka
+   per CSS – veikia dar prieš užsikraunant programėlei. */
+@keyframes splash-fade {
+  0%,
+  72% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.app-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--frost);
+  pointer-events: none;
+  animation: splash-fade 2.2s ease forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .splash-rise {
     animation: none;
