@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MarketSignalBadge, MarketSignalCard } from "@/components/MarketSignal";
 import { PriceTrend } from "@/components/PriceTrend";
 import { PushOptIn } from "@/components/PushOptIn";
+import { SplashScreen } from "@/components/SplashScreen";
 import { syncPushCity } from "@/lib/push";
 import { StationCard } from "@/components/StationCard";
 import { StationDetail } from "@/components/StationDetail";
@@ -380,6 +381,7 @@ function Index() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-frost font-sans text-ice antialiased">
+      <SplashScreen />
       <div className="pointer-events-none absolute -left-24 top-[-8%] h-[440px] w-[440px] rounded-full bg-mint/30 blur-[120px]" />
       <div className="pointer-events-none absolute -right-20 top-1/3 h-[420px] w-[420px] rounded-full bg-sky-400/20 blur-[120px]" />
       <div className="pointer-events-none absolute bottom-[-10%] left-1/3 h-[360px] w-[360px] rounded-full bg-indigo-400/20 blur-[120px]" />
