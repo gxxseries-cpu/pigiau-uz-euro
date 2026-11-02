@@ -130,14 +130,15 @@ function RootShell({ children }: { children: ReactNode }) {
         {/* Paleidimo ekranas: SSR HTML, matomas akimirksniu dar prieš įsijungiant programėlei.
             Išblunka grynai per CSS animaciją – JavaScript nereikalingas. */}
         <div className="app-splash" aria-hidden>
-          <div className="splash-rise flex flex-col items-center gap-3">
+          <div className="splash-rise flex flex-col items-center gap-7">
             <img
               src="/icon-192.png"
               alt=""
-              className="h-24 w-24 rounded-3xl shadow-2xl ring-1 ring-ice/20"
+              className="h-28 w-28 rounded-[2rem] shadow-2xl"
             />
-            <p className="text-lg font-bold tracking-tight text-ice">Pigiausi Degalai</p>
-            <p className="text-[12px] text-ice/50">Degalų kainos Lietuvoje</p>
+            <p className="pl-[0.45em] text-4xl font-bold uppercase tracking-[0.45em] text-ice">
+              Degalai
+            </p>
           </div>
         </div>
         {children}
