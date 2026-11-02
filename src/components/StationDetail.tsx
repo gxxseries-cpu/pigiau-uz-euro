@@ -38,11 +38,11 @@ export function StationDetail({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-frost/80 backdrop-blur-sm"
+      className="anim-fade fixed inset-0 z-50 flex items-end justify-center bg-frost/80 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-frost px-4 pb-8 pt-4 ring-1 ring-ice/15"
+        className="anim-sheet max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-frost px-4 pb-8 pt-4 ring-1 ring-ice/15"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-ice/20" />
@@ -60,7 +60,7 @@ export function StationDetail({
             </p>
           </div>
           <button onClick={onToggleFavorite} className="text-lg" aria-label="Mėgstama degalinė">
-            {favorite ? "💚" : "🤍"}
+            <span key={String(favorite)} className={favorite ? "anim-pop inline-block" : "inline-block"}>{favorite ? "💚" : "🤍"}</span>
           </button>
         </div>
 

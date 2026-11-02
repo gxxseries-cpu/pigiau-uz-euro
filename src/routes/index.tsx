@@ -445,7 +445,7 @@ function Index() {
           </div>
 
           {pickingCity && (
-            <div className="mt-3">
+            <div className="anim-slide-down mt-3">
               <input
                 value={cityQuery}
                 onChange={(e) => setCityQuery(e.target.value)}
@@ -592,8 +592,8 @@ function Index() {
                 </p>
               )}
               {list.map((s, i) => (
+                <div key={`${fuel}-${city}-${s.id}`} className="anim-rise" style={{ animationDelay: `${Math.min(i, 10) * 35}ms` }}>
                 <StationCard
-                  key={s.id}
                   station={s}
                   fuel={fuel}
                   cheapest={i === 0}
@@ -602,6 +602,7 @@ function Index() {
                   onOpen={() => setOpenStationId(s.id)}
                   signal={signal}
                 />
+                </div>
               ))}
             </div>
 
@@ -624,9 +625,11 @@ function Index() {
           <>
             <MarketSignalCard signal={signal} />
             {historyLoading ? (
-              <p className="mt-5 rounded-2xl bg-ice/5 p-6 text-center text-sm text-ice/70 ring-1 ring-ice/15">
-                Kraunama…
-              </p>
+              <div className="mt-5 space-y-3 rounded-2xl bg-ice/5 p-4 ring-1 ring-ice/15" aria-label="Kraunama…">
+                <div className="anim-shimmer h-4 w-1/2 rounded-md" />
+                <div className="anim-shimmer h-40 w-full rounded-xl" />
+                <div className="anim-shimmer h-3 w-3/4 rounded-md" />
+              </div>
             ) : (
               <PriceTrend fuel={fuel} title={city} points={trendPoints} />
             )}

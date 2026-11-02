@@ -59,14 +59,14 @@ export function StationCard({
       }
     >
       {cheapest && (
-        <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-mint to-transparent" />
+        <div className="anim-glow pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-mint to-transparent" />
       )}
       <div className="flex items-start justify-between gap-2">
         <button onClick={onOpen} className="flex flex-1 items-start gap-2.5 text-left">
           <BrandLogo brand={station.brand} size={30} />
           <span className="block">
             {cheapest && (
-              <span className="mb-1 inline-block rounded-full bg-mint px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-frost">
+              <span className="anim-glow mb-1 inline-block rounded-full bg-mint px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-frost">
                 Pigiausia
               </span>
             )}
@@ -83,7 +83,7 @@ export function StationCard({
           </span>
         </button>
         <button onClick={onToggleFavorite} className="text-lg" aria-label="Mėgstama degalinė">
-          {favorite ? "💚" : "🤍"}
+          <span key={String(favorite)} className={favorite ? "anim-pop inline-block" : "inline-block"}>{favorite ? "💚" : "🤍"}</span>
         </button>
       </div>
 
