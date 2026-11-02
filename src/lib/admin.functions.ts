@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { norm } from "@/data/stations";
 
 const rowSchema = z.object({
   brand: z.string().min(1),
@@ -157,9 +158,12 @@ export const geocodeStations = createServerFn({ method: "POST" })
           { headers: { "User-Agent": "PigiausiDegalai/1.0 (lovable app)" } },
         );
         if (!res.ok) continue;
-        const json = (await res.json()) as Array<{ lat: string; lon: string }>;
+        const json = (await res.json()) as Array<{ lat: string; lon: string; display_name?: string }>;
         const hit = json[0];
         if (!hit) continue;
+        // Atmesti rezultatą, jei jame neminimas degalinės miestas/kaimas (kitaip gali pataikyti į kitą miestą).
+        const cityWord = norm(station.city).split(" ")[0]!.slice(0, 5);
+        if (cityWord && !norm(hit.display_name ?? "").includes(cityWord)) continue;
         await context.supabase
           .from("stations")
           .update({ lat: Number(hit.lat), lon: Number(hit.lon), updated_at: new Date().toISOString() })
