@@ -198,7 +198,13 @@ async function loadFuelData(): Promise<FuelData> {
     if (latest.error) throw latest.error;
     stationRows = stations.data ?? [];
     latestDate = latest.data?.price_date ?? null;
-    if (latestDate) priceRows = await fetchAllPrices(supabase, { date: latestDate });
+    // Paskutinė žinoma kiekvienos degalinės kaina iš 7 dienų (savaitgaliais/šventėmis ENA dalies tinklų neatnaujina).
+    // Eilutės surikiuotos pagal datą didėjančiai, todėl naujesnė kaina perrašo senesnę.
+    if (latestDate) {
+      const since = new Date(`${latestDate}T00:00:00Z`);
+      since.setUTCDate(since.getUTCDate() - 7);
+      priceRows = await fetchAllPrices(supabase, { since: since.toISOString().slice(0, 10) });
+    }
   } catch (err) {
     console.error("Nepavyko gauti duomenų:", err);
     return { stations: [], brands: [], majorBrands: [], cities: [], latestDate: null };
