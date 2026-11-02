@@ -219,3 +219,70 @@ html.native-app textarea {
     animation: none;
   }
 }
+
+/* ===== Švelnios mikroanimacijos ===== */
+button {
+  transition:
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 250ms ease-out,
+    color 250ms ease-out,
+    box-shadow 250ms ease-out,
+    opacity 200ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+@keyframes anim-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.anim-rise { animation: anim-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes anim-slide-down {
+  from { opacity: 0; transform: translateY(-8px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.anim-slide-down { animation: anim-slide-down 300ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes anim-fade { from { opacity: 0; } to { opacity: 1; } }
+.anim-fade { animation: anim-fade 250ms ease-out both; }
+
+@keyframes anim-sheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.anim-sheet { animation: anim-sheet 420ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes anim-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.45); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+.anim-pop { animation: anim-pop 450ms cubic-bezier(0.22, 1, 0.36, 1); }
+
+@keyframes anim-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 transparent; }
+  50% { opacity: 0.85; box-shadow: 0 0 12px 1px color-mix(in oklch, var(--mint) 55%, transparent); }
+}
+.anim-glow { animation: anim-glow 3.5s ease-in-out infinite; }
+
+@keyframes anim-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.anim-shimmer {
+  background: linear-gradient(90deg,
+    color-mix(in oklch, var(--ice) 6%, transparent) 25%,
+    color-mix(in oklch, var(--ice) 14%, transparent) 50%,
+    color-mix(in oklch, var(--ice) 6%, transparent) 75%);
+  background-size: 200% 100%;
+  animation: anim-shimmer 1.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-rise, .anim-slide-down, .anim-fade, .anim-sheet, .anim-pop, .anim-glow, .anim-shimmer { animation: none; }
+  button:active:not(:disabled) { transform: none; }
+}
