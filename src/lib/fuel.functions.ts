@@ -198,12 +198,9 @@ async function loadFuelData(): Promise<FuelData> {
     if (latest.error) throw latest.error;
     stationRows = stations.data ?? [];
     latestDate = latest.data?.price_date ?? null;
-    // Paskutinė žinoma kiekvienos degalinės kaina iš 7 dienų (savaitgaliais/šventėmis ENA dalies tinklų neatnaujina).
-    // Eilutės surikiuotos pagal datą didėjančiai, todėl naujesnė kaina perrašo senesnę.
+    // Tik paskutinės įkeltos dienos kainos (savaitgalį tai būna penktadienio kainos).
     if (latestDate) {
-      const since = new Date(`${latestDate}T00:00:00Z`);
-      since.setUTCDate(since.getUTCDate() - 7);
-      priceRows = await fetchAllPrices(supabase, { since: since.toISOString().slice(0, 10) });
+      priceRows = await fetchAllPrices(supabase, { date: latestDate });
     }
   } catch (err) {
     console.error("Nepavyko gauti duomenų:", err);

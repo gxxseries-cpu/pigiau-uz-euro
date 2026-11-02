@@ -96,8 +96,12 @@ type TabId = (typeof TABS)[number]["id"];
 function Index() {
   const { data } = useSuspenseQuery(fuelQuery);
   const { data: signal } = useSuspenseQuery(signalQuery);
-  // Istorija kraunama fone – nestabdo pradinio ekrano.
-  const { data: history } = useQuery(historyQuery);
+  const [tab, setTab] = useState<TabId>("nearby");
+  // Istorija kraunama tik atidarius „Tendencija" skirtuką.
+  const { data: history, isLoading: historyLoading } = useQuery({
+    ...historyQuery,
+    enabled: tab === "trend",
+  });
   const cities = data.cities.length > 0 ? data.cities : Object.keys(CITY_CENTERS);
 
   const [city, setCity] = useState(() => (cities.includes("Vilnius") ? "Vilnius" : cities[0]!));
@@ -114,7 +118,6 @@ function Index() {
   const [radius, setRadius] = useState(10);
   const [brand, setBrand] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [tab, setTab] = useState<TabId>("nearby");
   const [openStationId, setOpenStationId] = useState<string | null>(null);
   const [consumption, setConsumption] = useState("6,5");
   const [tripKm, setTripKm] = useState("300");
@@ -620,7 +623,13 @@ function Index() {
         {tab === "trend" && (
           <>
             <MarketSignalCard signal={signal} />
-            <PriceTrend fuel={fuel} title={city} points={trendPoints} />
+            {historyLoading ? (
+              <p className="mt-5 rounded-2xl bg-ice/5 p-6 text-center text-sm text-ice/70 ring-1 ring-ice/15">
+                Kraunama…
+              </p>
+            ) : (
+              <PriceTrend fuel={fuel} title={city} points={trendPoints} />
+            )}
           </>
         )}
 
