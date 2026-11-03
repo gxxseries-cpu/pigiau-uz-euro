@@ -343,8 +343,8 @@ function Index() {
     const source =
       nearby.length >= 3
         ? nearby
-        : [...base].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 5);
-    return source.sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0)).slice(0, 5);
+        : [...base].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 10);
+    return source.sort((a, b) => (a.prices[fuel] ?? 0) - (b.prices[fuel] ?? 0)).slice(0, 10);
   }, [cityStations, withDistance, radius, brand, fuel, manualCity, city]);
 
 
